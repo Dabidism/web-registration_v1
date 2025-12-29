@@ -1,0 +1,466 @@
+.main {
+  flex-grow: 1;
+  padding: 30px;
+  margin-top: 24px;
+  margin-left: 270px;
+  margin-bottom: 32px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.main h2 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card-svg {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 40px;
+  margin-left: 12px;
+}
+
+#car-icon {
+  width: 32px;
+  height: 32px;
+  color: #3CAC65;
+}
+
+.card-flex strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.card-num {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: 600;
+  margin: 6px 0 0 0;
+  color: #1a73e8;
+  letter-spacing: 1px;
+}
+
+.card-num-occ {
+  font-size: 1.2rem;
+  color: #1a73e8;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.occupancy-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: #e0e7ef;
+  border-radius: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(26, 115, 232, 0.05);
+}
+
+.occupancy-progress {
+  height: 100%;
+  background: #3CAC65;
+  border-radius: 6px 0 0 6px;
+  transition: width 0.5s;
+  width: var(--occupancy, 0%);
+}
+
+.occupancy-status {
+  margin-top: 6px;
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #388e3c;
+}
+
+.occupancy-status.full {
+  color: #d32f2f;
+}
+
+/* --- Parking Allocation Overview --- */
+.parking-overview {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+.parking-overview h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.4rem;
+  color: #333;
+}
+
+.allocation-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.allocation-card {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #ddd;
+  transition: transform 0.2s;
+}
+
+.allocation-card:hover {
+  transform: translateY(-2px);
+}
+
+.allocation-card.students {
+  border-left-color: #4285f4;
+}
+
+.allocation-card.faculty {
+  border-left-color: #34a853;
+}
+
+.allocation-card.staff {
+  border-left-color: #fbbc04;
+}
+
+.allocation-card.guests {
+  border-left-color: #ea4335;
+}
+
+.allocation-card .card-header {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.allocation-card .card-occupancy {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.allocation-card .card-progress {
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.allocation-card .progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.allocation-card.students .progress-bar {
+  background: #4285f4;
+}
+
+.allocation-card.faculty .progress-bar {
+  background: #34a853;
+}
+
+.allocation-card.staff .progress-bar {
+  background: #fbbc04;
+}
+
+.allocation-card.guests .progress-bar {
+  background: #ea4335;
+}
+
+/* --- Grid Layout --- */
+.grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-top: 30px;
+}
+
+.grid-top {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 7fr 3fr;
+  gap: 24px;
+  margin-bottom: 24px;
+  align-items: stretch;
+}
+
+.grid-bottom {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 3fr 7fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.grid-top>.card,
+.grid-bottom>.card {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+#gate-traffic,
+#daily-visitor-trend {
+  aspect-ratio: 2.5 / 1;
+  min-width: 200px;
+  min-height: 120px;
+}
+
+#recent-activity,
+#vehicle-types {
+  aspect-ratio: 1 / 1;
+  min-width: 120px;
+  min-height: 120px;
+}
+
+.card {
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.card canvas {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.card strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.card p {
+  font-size: 14px;
+  color: #555;
+  margin-top: 10px;
+}
+
+.card ul {
+  list-style: none;
+  margin-top: 10px;
+}
+
+.card ul li {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.card ul,
+.card .bar,
+.card .donut,
+.card .line {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  word-break: break-word;
+}
+
+.view-btn {
+  margin: 16px auto 0 auto;
+  display: block;
+  padding: 6px 18px;
+  background: #333;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 0.98rem;
+  text-align: center;
+  min-width: unset;
+  max-width: 180px;
+}
+
+.activity-list {
+  margin: 15px 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-user {
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+.activity-action {
+  color: #666;
+  text-transform: capitalize;
+}
+
+.activity-time {
+  color: #999;
+  font-size: 12px;
+}
+
+/* --- Gate Traffic Buttons --- */
+.traffic-btn-group {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.traffic-btn-box {
+  position: relative;
+  display: flex;
+  background: #f4f7fa;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 1px 4px rgba(26, 115, 232, 0.04);
+  min-width: 210px;
+}
+
+.traffic-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #1a73e8;
+  padding: 8px 22px;
+  border-radius: 6px;
+  font-size: 0.98rem;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.traffic-btn:not(:last-child) {
+  margin-right: 2px;
+}
+
+.traffic-btn.active {
+  color: #fff;
+}
+
+.traffic-btn:hover {
+  color: #0d448b;
+}
+
+.traffic-btn-slider {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 66px;
+  height: calc(100% - 8px);
+  background: #1a73e8;
+  border-radius: 6px;
+  z-index: 1;
+  transition: left 0.2s cubic-bezier(.4, 1, .6, 1), width 0.2s cubic-bezier(.4, 1, .6, 1), background 0.18s;
+  pointer-events: none;
+}
+
+/* Responsive: stack sidebar on top for small screens */
+@media (max-width: 900px) {
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    box-shadow: none;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .main {
+    margin-left: 0;
+    min-height: unset;
+  }
+}
+
+/* Responsive: stack cards vertically on small screens */
+@media (max-width: 1100px) {
+
+  .grid-top,
+  .grid-bottom {
+    grid-template-columns: 1fr !important;
+    gap: 24px;
+  }
+
+  .grid-top>.card,
+  .grid-bottom>.card {
+    margin-right: 0;
+  }
+
+  #gate-traffic,
+  #recent-activity,
+  #vehicle-types,
+  #daily-visitor-trend {
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+    aspect-ratio: unset !important;
+    height: auto;
+  }
+
+  .allocation-cards {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .allocation-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* New Refactored Classes */
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chart-container-lg {
+  position: relative;
+  height: 200px;
+}
+
+.chart-container-xl {
+  position: relative;
+  height: 250px;
+}

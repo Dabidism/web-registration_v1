@@ -1,0 +1,103 @@
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+  /* Header */
+  .header {
+    padding: 10px 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .header-right {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .header button {
+    width: 48%;
+    margin: 0;
+  }
+  
+  /* Container */
+  .container {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  h2 {
+    font-size: 1.8rem;
+  }
+  
+  /* Form Grids */
+  .grid-2, .grid-3 {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  /* Checkbox Group */
+  .checkbox-group {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  
+  .checkbox-group label {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  /* Upload Areas */
+  .upload-area {
+    padding: 15px 10px;
+  }
+  
+  /* Buttons */
+  .button-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .submit-btn {
+    width: 100%;
+  }
+  
+  .add-btn {
+    width: 100%;
+  }
+}
+
+/* Tablet Responsive Styles */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .header {
+    padding: 10px 40px;
+  }
+  
+  .container {
+    padding: 30px;
+  }
+  
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid-3 > *:last-child {
+    grid-column: span 2;
+  }
+}
+
+/* Consistent Focus States */
+input:focus, select:focus, button:focus {
+  outline: 2px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* Improved Touch Targets */
+@media (pointer: coarse) {
+  input, select, button, .checkbox-group label {
+    min-height: 44px;
+  }
+  
+  .upload-area {
+    min-height: 100px;
+  }
+}

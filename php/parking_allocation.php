@@ -1,0 +1,264 @@
+<?php
+session_start();
+
+// Check if user is logged in and is either Admin or Staff
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['SSEDMMO Admin', 'SSEDMMO Staff'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$pageTitle = "Parking Allocation Management";
+$currentPage = "parking_allocation";
+$cssFiles = ["parking_allocation.css"];
+$jsFiles = ["parking_allocation.js"];
+
+require_once 'dbConnection.php';
+
+$db = new Database();
+$conn = $db->getConnection();
+
+// Get current parking allocation data
+$result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+$parkingData = $result->fetch_assoc();
+
+if (!$parkingData) {
+    // Insert default data if none exists
+    $conn->query("INSERT INTO parkingstatus (totalCapacity, allocatedStudents, allocatedFaculty, allocatedStaff, allocatedGuests) VALUES (200, 100, 50, 30, 20)");
+    $result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+    $parkingData = $result->fetch_assoc();
+}
+
+// Update current occupancy from historical_log
+$occupancyByRole = [
+    'students' => 0,
+    'faculty' => 0,
+    'staff' => 0,
+    'guests' => 0
+];
+
+$result = $conn->query("
+    SELECT 
+        CASE 
+            WHEN vo.role = 'student' THEN 'students'
+            WHEN vo.role = 'faculty' THEN 'faculty'
+            WHEN vo.role IN ('non-teaching', 'staff') THEN 'staff'
+            WHEN v.visitorID IS NOT NULL THEN 'guests'
+            ELSE 'guests'
+        END as role_category,
+        COUNT(*) as count
+    FROM historical_log h
+    JOIN vehicle v ON h.plateNum = v.plateNum
+    LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
+    WHERE h.status = 'entered' AND h.exitTime IS NULL
+    GROUP BY role_category
+");
+
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $occupancyByRole[$row['role_category']] = $row['count'];
+    }
+}
+
+// Update parking status with current occupancy
+$conn->query("UPDATE parkingstatus SET 
+    currentOccupiedStudents = {$occupancyByRole['students']},
+    currentOccupiedFaculty = {$occupancyByRole['faculty']},
+    currentOccupiedStaff = {$occupancyByRole['staff']},
+    currentOccupiedGuests = {$occupancyByRole['guests']}
+    WHERE id = 1");
+
+// Refresh parking data with updated occupancy
+$result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+$parkingData = $result->fetch_assoc();
+
+// Handle form submission
+if ($_POST) {
+    $adminPassword = $_POST['adminPassword'] ?? '';
+
+    // Verify admin password
+    $stmt = $conn->prepare("SELECT password FROM user WHERE userID = ? AND role = 'SSEDMMO Admin'");
+    $stmt->bind_param("s", $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $admin = $result->fetch_assoc();
+
+    if (!$admin || !password_verify($adminPassword, $admin['password'])) {
+        $error = "Invalid admin password.";
+    } else {
+        $totalCapacity = (int) $_POST['totalCapacity'];
+        $allocatedStudents = (int) $_POST['allocatedStudents'];
+        $allocatedFaculty = (int) $_POST['allocatedFaculty'];
+        $allocatedStaff = (int) $_POST['allocatedStaff'];
+        $allocatedGuests = (int) $_POST['allocatedGuests'];
+
+        $totalAllocated = $allocatedStudents + $allocatedFaculty + $allocatedStaff + $allocatedGuests;
+
+        if ($totalAllocated <= $totalCapacity) {
+            $stmt = $conn->prepare("UPDATE parkingstatus SET totalCapacity = ?, allocatedStudents = ?, allocatedFaculty = ?, allocatedStaff = ?, allocatedGuests = ? WHERE id = 1");
+            $stmt->bind_param("iiiii", $totalCapacity, $allocatedStudents, $allocatedFaculty, $allocatedStaff, $allocatedGuests);
+
+            if ($stmt->execute()) {
+                $success = "Parking allocation updated successfully!";
+                // Refresh data
+                $result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+                $parkingData = $result->fetch_assoc();
+            } else {
+                $error = "Error updating parking allocation.";
+            }
+        } else {
+            $error = "Total allocated spaces ($totalAllocated) cannot exceed total capacity ($totalCapacity).";
+        }
+    }
+}
+
+include_once '../includes/header.php';
+?>
+
+<main class="main">
+    <h2>Parking Allocation Management</h2>
+
+    <?php if (isset($success)): ?>
+        <div class="alert success"><?php echo $success; ?></div>
+    <?php endif; ?>
+
+    <?php if (isset($error)): ?>
+        <div class="alert error"><?php echo $error; ?></div>
+    <?php endif; ?>
+
+    <div class="allocation-container">
+        <div class="current-allocation">
+            <h3>Current Allocation</h3>
+            <div class="allocation-grid">
+                <div class="allocation-card">
+                    <div class="card-header">Total Capacity</div>
+                    <div class="card-value"><?php echo $parkingData['totalCapacity']; ?></div>
+                </div>
+                <div class="allocation-card students">
+                    <div class="card-header">Students</div>
+                    <div class="card-value"><?php echo $parkingData['allocatedStudents']; ?></div>
+                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedStudents']; ?> occupied</div>
+                    <div class="card-progress">
+                        <div class="progress-bar"
+                            style="--progress-width: <?php echo $parkingData['allocatedStudents'] > 0 ? ($parkingData['currentOccupiedStudents'] / $parkingData['allocatedStudents']) * 100 : 0; ?>%">
+                        </div>
+                    </div>
+                    <div
+                        class="card-availability <?php echo ($parkingData['currentOccupiedStudents'] / max($parkingData['allocatedStudents'], 1)) > 0.9 ? 'full' : 'available'; ?>">
+                        <?php echo max(0, $parkingData['allocatedStudents'] - $parkingData['currentOccupiedStudents']); ?>
+                        available
+                    </div>
+                </div>
+                <div class="allocation-card faculty">
+                    <div class="card-header">Faculty</div>
+                    <div class="card-value"><?php echo $parkingData['allocatedFaculty']; ?></div>
+                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedFaculty']; ?> occupied</div>
+                    <div class="card-progress">
+                        <div class="progress-bar"
+                            style="--progress-width: <?php echo $parkingData['allocatedFaculty'] > 0 ? ($parkingData['currentOccupiedFaculty'] / $parkingData['allocatedFaculty']) * 100 : 0; ?>%">
+                        </div>
+                    </div>
+                    <div
+                        class="card-availability <?php echo ($parkingData['currentOccupiedFaculty'] / max($parkingData['allocatedFaculty'], 1)) > 0.9 ? 'full' : 'available'; ?>">
+                        <?php echo max(0, $parkingData['allocatedFaculty'] - $parkingData['currentOccupiedFaculty']); ?>
+                        available
+                    </div>
+                </div>
+                <div class="allocation-card staff">
+                    <div class="card-header">Staff</div>
+                    <div class="card-value"><?php echo $parkingData['allocatedStaff']; ?></div>
+                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedStaff']; ?> occupied</div>
+                    <div class="card-progress">
+                        <div class="progress-bar"
+                            style="--progress-width: <?php echo $parkingData['allocatedStaff'] > 0 ? ($parkingData['currentOccupiedStaff'] / $parkingData['allocatedStaff']) * 100 : 0; ?>%">
+                        </div>
+                    </div>
+                    <div
+                        class="card-availability <?php echo ($parkingData['currentOccupiedStaff'] / max($parkingData['allocatedStaff'], 1)) > 0.9 ? 'full' : 'available'; ?>">
+                        <?php echo max(0, $parkingData['allocatedStaff'] - $parkingData['currentOccupiedStaff']); ?>
+                        available
+                    </div>
+                </div>
+                <div class="allocation-card guests">
+                    <div class="card-header">Guests</div>
+                    <div class="card-value"><?php echo $parkingData['allocatedGuests']; ?></div>
+                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedGuests']; ?> occupied</div>
+                    <div class="card-progress">
+                        <div class="progress-bar"
+                            style="--progress-width: <?php echo $parkingData['allocatedGuests'] > 0 ? ($parkingData['currentOccupiedGuests'] / $parkingData['allocatedGuests']) * 100 : 0; ?>%">
+                        </div>
+                    </div>
+                    <div
+                        class="card-availability <?php echo ($parkingData['currentOccupiedGuests'] / max($parkingData['allocatedGuests'], 1)) > 0.9 ? 'full' : 'available'; ?>">
+                        <?php echo max(0, $parkingData['allocatedGuests'] - $parkingData['currentOccupiedGuests']); ?>
+                        available
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
+            <div class="edit-allocation">
+                <h3>Edit Allocation</h3>
+                <form method="POST" id="allocationForm">
+                    <div class="form-group">
+                        <label for="totalCapacity">Total Parking Capacity</label>
+                        <input type="number" id="totalCapacity" name="totalCapacity"
+                            value="<?php echo $parkingData['totalCapacity']; ?>" min="1" required
+                            oninput="calculateDistributions()">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="allocatedStudents">Students</label>
+                            <input type="number" id="allocatedStudents" name="allocatedStudents"
+                                value="<?php echo $parkingData['allocatedStudents']; ?>" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="allocatedFaculty">Faculty</label>
+                            <input type="number" id="allocatedFaculty" name="allocatedFaculty"
+                                value="<?php echo $parkingData['allocatedFaculty']; ?>" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="allocatedStaff">Staff</label>
+                            <input type="number" id="allocatedStaff" name="allocatedStaff"
+                                value="<?php echo $parkingData['allocatedStaff']; ?>" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="allocatedGuests">Guests</label>
+                            <input type="number" id="allocatedGuests" name="allocatedGuests"
+                                value="<?php echo $parkingData['allocatedGuests']; ?>" min="0" required>
+                        </div>
+                    </div>
+
+                    <div class="allocation-summary">
+                        <div class="summary-item">
+                            <span>Total Allocated:</span>
+                            <span
+                                id="totalAllocated"><?php echo $parkingData['allocatedStudents'] + $parkingData['allocatedFaculty'] + $parkingData['allocatedStaff'] + $parkingData['allocatedGuests']; ?></span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Remaining:</span>
+                            <span
+                                id="remaining"><?php echo $parkingData['totalCapacity'] - ($parkingData['allocatedStudents'] + $parkingData['allocatedFaculty'] + $parkingData['allocatedStaff'] + $parkingData['allocatedGuests']); ?></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="adminPassword">Admin Password (Required)</label>
+                        <input type="password" id="adminPassword" name="adminPassword" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Update Allocation</button>
+                </form>
+            </div>
+        <?php endif; ?>
+    </div>
+</main>
+
+<?php
+$db->closeConnection();
+include_once '../includes/footer.php';
+?>

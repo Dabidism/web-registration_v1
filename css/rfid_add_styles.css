@@ -1,0 +1,30 @@
+.btn-add-rfid {
+  padding: 8px 16px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-add-rfid:hover {
+  background: #1557b0;
+  transform: translateY(-1px);
+}
+
+.btn-add-confirm {
+  padding: 10px 20px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-add-confirm:hover {
+  background: #059669;
+}
