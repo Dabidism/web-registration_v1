@@ -58,10 +58,6 @@ document.addEventListener('DOMContentLoaded', function () {
         downloadBtn.addEventListener("click", downloadReport);
     }
 
-    // Preview report
-    if (previewBtn) {
-        previewBtn.addEventListener("click", previewReport);
-    }
 
     // Back to selection
     if (backToSelectionBtn) {
@@ -102,26 +98,6 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = `export_report.php?type=report&period=${period}&customDate=${customDate}`;
     }
 
-    function previewReport() {
-        const period = document.getElementById('reportPeriod').value;
-        const customDate = document.getElementById('customDate').value;
-
-        fetch('preview_report.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ period: period, customDate: customDate })
-        })
-            .then(response => response.json())
-            .then(data => {
-                const previewWindow = window.open('', '_blank', 'width=1000,height=700');
-                previewWindow.document.write(data.html);
-                previewWindow.document.close();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error generating preview');
-            });
-    }
 
     let trafficChart;
 

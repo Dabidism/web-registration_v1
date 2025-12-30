@@ -51,14 +51,16 @@ include_once '../includes/header.php';
         <strong class="card-num"><?php echo $registeredResult->num_rows; ?></strong>
       </div>
     </div>
-    <div class="card-flex">
-      <div>
-        <h3>Add RFID Tag</h3>
-        <p>Register New RFID</p>
-        <br />
-        <button class="btn-add-rfid">Add RFID</button>
+    <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
+      <div class="card-flex">
+        <div>
+          <h3>Add RFID Tag</h3>
+          <p>Register New RFID</p>
+          <br />
+          <button class="btn-add-rfid">Add RFID</button>
+        </div>
       </div>
-    </div>
+    <?php endif; ?>
   </div>
 
   <div class="grid">

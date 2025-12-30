@@ -86,7 +86,7 @@ include_once '../includes/header.php';
                 <td><?php echo htmlspecialchars($row['username'] ?? 'Unknown'); ?></td>
                 <td>
                   <?php if ($row['role']): ?>
-                    <span class="role-badge role-<?php echo strtolower($row['role']); ?>">
+                    <span class="role-badge role-<?php echo strtolower(str_replace(' ', '-', $row['role'])); ?>">
                       <?php echo htmlspecialchars(ucfirst($row['role'])); ?>
                     </span>
                   <?php else: ?>

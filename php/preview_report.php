@@ -52,66 +52,138 @@ switch ($period) {
         $whereClause = "WHERE e.entryTime >= '$startDate'";
 }
 
-// Get statistics
+// Get statistics for the period
 if ($period === 'custom' && isset($endDate)) {
     $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE entryTime BETWEEN '$startDate' AND '$endDate'");
+    $exitsResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE exitTime BETWEEN '$startDate' AND '$endDate'");
+    $uniqueVehiclesResult = $conn->query("SELECT COUNT(DISTINCT plateNum) as count FROM entryexitlog WHERE entryTime BETWEEN '$startDate' AND '$endDate'");
+
+    // Breakdown by Vehicle Type
+    $vehicleTypeQuery = "SELECT v.vehicleType, COUNT(*) as count 
+                         FROM entryexitlog e 
+                         JOIN vehicle v ON e.plateNum = v.plateNum 
+                         WHERE e.entryTime BETWEEN '$startDate' AND '$endDate' 
+                         GROUP BY v.vehicleType";
+
+    // Breakdown by Role
+    $roleQuery = "SELECT 
+                    CASE 
+                        WHEN vo.role IS NOT NULL THEN vo.role 
+                        ELSE 'Visitor' 
+                    END as userRole, 
+                    COUNT(*) as count 
+                  FROM entryexitlog e 
+                  LEFT JOIN vehicle v ON e.plateNum = v.plateNum 
+                  LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
+                  WHERE e.entryTime BETWEEN '$startDate' AND '$endDate' 
+                  GROUP BY userRole";
 } else {
     $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE entryTime >= '$startDate'");
+    $exitsResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE exitTime >= '$startDate'");
+    $uniqueVehiclesResult = $conn->query("SELECT COUNT(DISTINCT plateNum) as count FROM entryexitlog WHERE entryTime >= '$startDate'");
+
+    // Breakdown by Vehicle Type
+    $vehicleTypeQuery = "SELECT v.vehicleType, COUNT(*) as count 
+                         FROM entryexitlog e 
+                         JOIN vehicle v ON e.plateNum = v.plateNum 
+                         WHERE e.entryTime >= '$startDate' 
+                         GROUP BY v.vehicleType";
+
+    // Breakdown by Role
+    $roleQuery = "SELECT 
+                    CASE 
+                        WHEN vo.role IS NOT NULL THEN vo.role 
+                        ELSE 'Visitor' 
+                    END as userRole, 
+                    COUNT(*) as count 
+                  FROM entryexitlog e 
+                  LEFT JOIN vehicle v ON e.plateNum = v.plateNum 
+                  LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
+                  WHERE e.entryTime >= '$startDate' 
+                  GROUP BY userRole";
 }
+
 $totalEntries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
+$totalExits = $exitsResult ? $exitsResult->fetch_assoc()['count'] : 0;
+$totalUniqueVehicles = $uniqueVehiclesResult ? $uniqueVehiclesResult->fetch_assoc()['count'] : 0;
 
-// Get all entries for the period
-$allEntriesQuery = "SELECT 
-    CASE 
-        WHEN vo.fName IS NOT NULL THEN CONCAT(vo.fName, ' ', vo.lName)
-        ELSE v.fullName
-    END as fullName,
-    e.plateNum, e.entryTime, e.exitTime, e.gateLocation, e.status
-    FROM entryexitlog e 
-    LEFT JOIN vehicle vh ON e.plateNum = vh.plateNum
-    LEFT JOIN vehicleowner vo ON vh.OwnerID = vo.OwnerID
-    LEFT JOIN visitor v ON vh.visitorID = v.visitorID
-    $whereClause 
-    ORDER BY e.entryTime DESC";
+$vehicleTypeResult = $conn->query($vehicleTypeQuery);
+$roleResult = $conn->query($roleQuery);
 
-$allEntriesResult = $conn->query($allEntriesQuery);
+// Construct HTML tables
+$summaryTable = "
+<div class='section'>
+    <h2>SUMMARY STATISTICS</h2>
+    <table class='data-table' style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+        <tr>
+            <th style='border: 1px solid #ddd; padding: 12px; text-align: left; background-color: #f8f9fa;'>Metric</th>
+            <th style='border: 1px solid #ddd; padding: 12px; text-align: left; background-color: #f8f9fa;'>Count</th>
+        </tr>
+        <tr>
+            <td style='border: 1px solid #ddd; padding: 12px;'>Total Entries</td>
+            <td style='border: 1px solid #ddd; padding: 12px; font-weight: bold;'>" . number_format($totalEntries) . "</td>
+        </tr>
+        <tr>
+            <td style='border: 1px solid #ddd; padding: 12px;'>Total Exits</td>
+            <td style='border: 1px solid #ddd; padding: 12px; font-weight: bold;'>" . number_format($totalExits) . "</td>
+        </tr>
+        <tr>
+            <td style='border: 1px solid #ddd; padding: 12px;'>Unique Vehicles</td>
+            <td style='border: 1px solid #ddd; padding: 12px; font-weight: bold;'>" . number_format($totalUniqueVehicles) . "</td>
+        </tr>
+    </table>
+</div>
 
-$entriesTable = '';
-if ($allEntriesResult && $allEntriesResult->num_rows > 0) {
-    $entriesTable = '<table class="data-table">
+<div class='section'>
+    <h2>ENTRIES BY VEHICLE TYPE</h2>
+    <table class='data-table' style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Plate Number</th>
-                <th>Entry Time</th>
-                <th>Exit Time</th>
-                <th>Gate Location</th>
-                <th>Status</th>
+                <th style='border: 1px solid #ddd; padding: 12px; text-align: left; background-color: #f8f9fa;'>Vehicle Type</th>
+                <th style='border: 1px solid #ddd; padding: 12px; text-align: left; background-color: #f8f9fa;'>Count</th>
             </tr>
         </thead>
-        <tbody>';
+        <tbody>";
 
-    while ($row = $allEntriesResult->fetch_assoc()) {
-        $name = $row['fullName'] ?: 'Unknown';
-        $plate = $row['plateNum'] ?: 'N/A';
-        $entryTime = $row['entryTime'] ? date('M j, Y g:i A', strtotime($row['entryTime'])) : 'N/A';
-        $exitTime = $row['exitTime'] ? date('M j, Y g:i A', strtotime($row['exitTime'])) : 'Still Inside';
-        $gate = $row['gateLocation'] ?: 'New Site';
-        $status = ucfirst($row['status'] ?: 'entered');
-
-        $entriesTable .= "<tr>
-            <td>$name</td>
-            <td>$plate</td>
-            <td>$entryTime</td>
-            <td>$exitTime</td>
-            <td>$gate</td>
-            <td>$status</td>
-        </tr>";
+if ($vehicleTypeResult && $vehicleTypeResult->num_rows > 0) {
+    while ($row = $vehicleTypeResult->fetch_assoc()) {
+        $summaryTable .= "
+            <tr>
+                <td style='border: 1px solid #ddd; padding: 12px;'>" . htmlspecialchars($row['vehicleType'] ?: 'Unknown') . "</td>
+                <td style='border: 1px solid #ddd; padding: 12px;'>" . number_format($row['count']) . "</td>
+            </tr>";
     }
-    $entriesTable .= '</tbody></table>';
 } else {
-    $entriesTable = '<p class="no-data">No entries found for this period.</p>';
+    $summaryTable .= "<tr><td colspan='2' style='border: 1px solid #ddd; padding: 12px; text-align: center;'>No data available</td></tr>";
 }
+$summaryTable .= "</tbody></table></div>";
+
+$summaryTable .= "
+<div class='section'>
+    <h2>ENTRIES BY USER ROLE</h2>
+    <table class='data-table' style='width: 100%; border-collapse: collapse; margin-bottom: 20px;'>
+        <thead>
+            <tr>
+                <th style='border: 1px solid #ddd; padding: 12px; text-align: left; background-color: #f8f9fa;'>Role</th>
+                <th style='border: 1px solid #ddd; padding: 12px; text-align: left; background-color: #f8f9fa;'>Count</th>
+            </tr>
+        </thead>
+        <tbody>";
+
+if ($roleResult && $roleResult->num_rows > 0) {
+    while ($row = $roleResult->fetch_assoc()) {
+        $roleName = ucfirst(strtolower($row['userRole']));
+        $summaryTable .= "
+            <tr>
+                <td style='border: 1px solid #ddd; padding: 12px;'>" . htmlspecialchars($roleName) . "</td>
+                <td style='border: 1px solid #ddd; padding: 12px;'>" . number_format($row['count']) . "</td>
+            </tr>";
+    }
+} else {
+    $summaryTable .= "<tr><td colspan='2' style='border: 1px solid #ddd; padding: 12px; text-align: center;'>No data available</td></tr>";
+}
+$summaryTable .= "</tbody></table></div>";
+
 
 $html = "
 <!DOCTYPE html>
@@ -124,25 +196,12 @@ $html = "
     <div class='container'>
         <div class='header'>
             <h1>GATE ACCESS SYSTEM</h1>
-            <h2 style='color: #666; margin: 5px 0;'>COMPREHENSIVE REPORT</h2>
+            <h2 style='color: #666; margin: 5px 0;'>COMPREHENSIVE SUMMARY REPORT</h2>
             <p class='date'>Generated on: " . date('M j, Y g:i:s A') . "</p>
             <p class='date'>Period: $periodLabel</p>
         </div>
         
-        <div class='section'>
-            <h2>SUMMARY STATISTICS</h2>
-            <div class='summary-grid'>
-                <div class='summary-card'>
-                    <h3>Total Entries</h3>
-                    <p class='number'>" . number_format($totalEntries) . "</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class='section'>
-            <h2>DETAILED ENTRY/EXIT LOG</h2>
-            $entriesTable
-        </div>
+        $summaryTable
     </div>
 </body>
 </html>";

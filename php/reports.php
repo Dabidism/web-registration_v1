@@ -10,6 +10,7 @@ $pageTitle = "Reports";
 $currentPage = "reports";
 $cssFiles = ["reports.css"];
 $externalJs = ["https://cdn.jsdelivr.net/npm/chart.js"];
+$jsFiles = ["reports.js"];
 
 require_once 'dbConnection.php';
 
@@ -107,76 +108,64 @@ include_once '../includes/header.php';
     </div>
   </div>
   <div class="grid">
-    $pageTitle = "Reports";
-    $currentPage = "reports";
-    $cssFiles = ["reports.css"];
-    $externalJs = ["https://cdn.jsdelivr.net/npm/chart.js"];
-    $jsFiles = ["reports.js"];
 
-    require_once 'dbConnection.php';
-    // ... existing PHP code ...
-
-    // ... (HTML content) ...
-
-    <div class="grid">
-      <div class="card" id="gate-traffic">
-        <div class="flex-space-between-center">
-          <strong>Gate Traffic Analysis</strong>
-          <div class="traffic-btn-group">
-            <div class="traffic-btn-box">
-              <div class="traffic-btn-slider"></div>
-              <button class="traffic-btn active">Day</button>
-              <button class="traffic-btn">Week</button>
-              <button class="traffic-btn">Month</button>
-            </div>
+    <div class="card" id="gate-traffic">
+      <div class="flex-space-between-center">
+        <strong>Gate Traffic Analysis</strong>
+        <div class="traffic-btn-group">
+          <div class="traffic-btn-box">
+            <div class="traffic-btn-slider"></div>
+            <button class="traffic-btn active">Day</button>
+            <button class="traffic-btn">Week</button>
+            <button class="traffic-btn">Month</button>
           </div>
         </div>
+      </div>
 
-        <div class="chart-container">
-          <canvas id="trafficChart"></canvas>
-        </div>
+      <div class="chart-container">
+        <canvas id="trafficChart"></canvas>
       </div>
     </div>
-    <div class="overlay" id="overlay"></div>
+  </div>
+  <div class="overlay" id="overlay"></div>
 
-    <!-- Period Selection Modal -->
-    <div class="pop-up hidden" id="periodModal">
-      <span class="close-btn" id="closePeriodModal">&times;</span>
-      <h4>Generate Report</h4>
-      <div class="period-selection">
-        <label>Select Time Period:</label>
-        <select id="reportPeriod">
-          <option value="day">Last 24 Hours</option>
-          <option value="week">Last 7 Days</option>
-          <option value="month">Last 30 Days</option>
-          <option value="custom">Custom Date</option>
-        </select>
-        <div id="customDateContainer" class="custom-date-container">
-          <input type="date" id="customDate" class="custom-date-input">
-        </div>
-        <button id="generateReportBtn" class="btn-generate">Generate</button>
+  <!-- Period Selection Modal -->
+  <div class="pop-up hidden" id="periodModal">
+    <span class="close-btn" id="closePeriodModal">&times;</span>
+    <h4>Generate Report</h4>
+    <div class="period-selection">
+      <label>Select Time Period:</label>
+      <select id="reportPeriod">
+        <option value="day">Last 24 Hours</option>
+        <option value="week">Last 7 Days</option>
+        <option value="month">Last 30 Days</option>
+        <option value="custom">Custom Date</option>
+      </select>
+      <div id="customDateContainer" class="custom-date-container">
+        <input type="date" id="customDate" class="custom-date-input">
       </div>
+      <button id="generateReportBtn" class="btn-generate">Generate</button>
+    </div>
+  </div>
+
+  <!-- Report Preview Modal -->
+  <div class="pop-up hidden" id="reportPopup">
+    <span class="close-btn" id="closePopup">&times;</span>
+    <h4>Report Preview</h4>
+    <h3>GATE ACCESS SYSTEM - COMPREHENSIVE REPORT</h3>
+    <p class="generated-time font-size-12">
+      Generated on: <span id="reportDate"></span>
+    </p>
+
+    <div class="report-content" id="reportContent">
+      <!-- Dynamic content will be loaded here -->
     </div>
 
-    <!-- Report Preview Modal -->
-    <div class="pop-up hidden" id="reportPopup">
-      <span class="close-btn" id="closePopup">&times;</span>
-      <h4>Report Preview</h4>
-      <h3>GATE ACCESS SYSTEM - COMPREHENSIVE REPORT</h3>
-      <p class="generated-time font-size-12">
-        Generated on: <span id="reportDate"></span>
-      </p>
-
-      <div class="report-content" id="reportContent">
-        <!-- Dynamic content will be loaded here -->
-      </div>
-
-      <div class="btn-container">
-        <button class="btn-back" id="backToSelectionBtn">Back</button>
-        <button class="btn-preview" id="previewBtn">Preview</button>
-        <button class="btn-download" id="downloadBtn">Download</button>
-      </div>
+    <div class="btn-container">
+      <button class="btn-back" id="backToSelectionBtn">Back</button>
+      <button class="btn-download" id="downloadBtn">Download</button>
     </div>
+  </div>
 </main>
 
 <script>

@@ -83,8 +83,10 @@ include_once '../includes/header.php';
                 <td>
                   <div class="action-buttons">
                     <button class="btn-view" data-id="<?php echo $row['OwnerID']; ?>">View</button>
-                    <button class="btn-edit" data-id="<?php echo $row['OwnerID']; ?>">Edit</button>
-                    <button class="btn-delete" data-id="<?php echo $row['OwnerID']; ?>">Delete</button>
+                    <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
+                      <button class="btn-edit" data-id="<?php echo $row['OwnerID']; ?>">Edit</button>
+                      <button class="btn-delete" data-id="<?php echo $row['OwnerID']; ?>">Delete</button>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

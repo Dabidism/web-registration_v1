@@ -58,7 +58,7 @@ include_once '../includes/header.php';
     </div>
   </div>
 
-  <table>
+  <table class="data-table">
     <thead>
       <tr>
         <th>Full Name</th>
@@ -75,7 +75,15 @@ include_once '../includes/header.php';
         <?php while ($row = $result->fetch_assoc()): ?>
           <tr data-type="<?php echo ($row['stickerID'] && $row['stickerID'] !== 'N/A') ? 'registered' : 'visitor'; ?>">
             <td><?php echo htmlspecialchars(($row['fName'] ?? '') . ' ' . ($row['lName'] ?? '')); ?></td>
-            <td><?php echo htmlspecialchars($row['role'] ?? 'N/A'); ?></td>
+            <td>
+              <?php if (!empty($row['role'])): ?>
+                <span class="role-badge role-<?php echo strtolower($row['role']); ?>">
+                  <?php echo htmlspecialchars(ucfirst($row['role'])); ?>
+                </span>
+              <?php else: ?>
+                <span class="role-badge role-visitor">Visitor</span>
+              <?php endif; ?>
+            </td>
             <td><?php echo htmlspecialchars($row['stickerID'] ?? 'N/A'); ?></td>
             <td><?php echo htmlspecialchars($row['plateNum']); ?></td>
             <td><?php echo $row['entryTime'] ? date('Y-m-d h:i A', strtotime($row['entryTime'])) : '-'; ?></td>

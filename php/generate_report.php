@@ -18,7 +18,7 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // Calculate date range based on period
-switch($period) {
+switch ($period) {
     case 'day':
         $startDate = date('Y-m-d H:i:s', strtotime('-24 hours'));
         $periodLabel = 'Last 24 Hours';
@@ -47,57 +47,126 @@ switch($period) {
 }
 
 // Get statistics for the period
+// Get statistics for the period
 if ($period === 'custom' && isset($endDate)) {
     $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE entryTime BETWEEN '$startDate' AND '$endDate'");
-    $visitorsResult = $conn->query("SELECT COUNT(DISTINCT v.visitorID) as count FROM visitor v JOIN vehicle vh ON v.plateNum = vh.plateNum JOIN entryexitlog e ON vh.plateNum = e.plateNum WHERE e.entryTime BETWEEN '$startDate' AND '$endDate'");
-    $whereClause = "WHERE e.entryTime BETWEEN '$startDate' AND '$endDate'";
+    $exitsResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE exitTime BETWEEN '$startDate' AND '$endDate'");
+    $uniqueVehiclesResult = $conn->query("SELECT COUNT(DISTINCT plateNum) as count FROM entryexitlog WHERE entryTime BETWEEN '$startDate' AND '$endDate'");
+
+    // Breakdown by Vehicle Type
+    $vehicleTypeQuery = "SELECT v.vehicleType, COUNT(*) as count 
+                         FROM entryexitlog e 
+                         JOIN vehicle v ON e.plateNum = v.plateNum 
+                         WHERE e.entryTime BETWEEN '$startDate' AND '$endDate' 
+                         GROUP BY v.vehicleType";
+
+    // Breakdown by Role
+    $roleQuery = "SELECT 
+                    CASE 
+                        WHEN vo.role IS NOT NULL THEN vo.role 
+                        ELSE 'Visitor' 
+                    END as userRole, 
+                    COUNT(*) as count 
+                  FROM entryexitlog e 
+                  LEFT JOIN vehicle v ON e.plateNum = v.plateNum 
+                  LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
+                  WHERE e.entryTime BETWEEN '$startDate' AND '$endDate' 
+                  GROUP BY userRole";
+
 } else {
     $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE entryTime >= '$startDate'");
-    $visitorsResult = $conn->query("SELECT COUNT(DISTINCT v.visitorID) as count FROM visitor v JOIN vehicle vh ON v.plateNum = vh.plateNum JOIN entryexitlog e ON vh.plateNum = e.plateNum WHERE e.entryTime >= '$startDate'");
-    $whereClause = "WHERE e.entryTime >= '$startDate'";
+    $exitsResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE exitTime >= '$startDate'");
+    $uniqueVehiclesResult = $conn->query("SELECT COUNT(DISTINCT plateNum) as count FROM entryexitlog WHERE entryTime >= '$startDate'");
+
+    // Breakdown by Vehicle Type
+    $vehicleTypeQuery = "SELECT v.vehicleType, COUNT(*) as count 
+                         FROM entryexitlog e 
+                         JOIN vehicle v ON e.plateNum = v.plateNum 
+                         WHERE e.entryTime >= '$startDate' 
+                         GROUP BY v.vehicleType";
+
+    // Breakdown by Role
+    $roleQuery = "SELECT 
+                    CASE 
+                        WHEN vo.role IS NOT NULL THEN vo.role 
+                        ELSE 'Visitor' 
+                    END as userRole, 
+                    COUNT(*) as count 
+                  FROM entryexitlog e 
+                  LEFT JOIN vehicle v ON e.plateNum = v.plateNum 
+                  LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
+                  WHERE e.entryTime >= '$startDate' 
+                  GROUP BY userRole";
 }
+
 $totalEntries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
-$totalVisitors = $visitorsResult ? $visitorsResult->fetch_assoc()['count'] : 0;
+$totalExits = $exitsResult ? $exitsResult->fetch_assoc()['count'] : 0;
+$totalUniqueVehicles = $uniqueVehiclesResult ? $uniqueVehiclesResult->fetch_assoc()['count'] : 0;
 
-// Get recent entries for the period
-$recentEntriesQuery = "SELECT 
-    CASE 
-        WHEN vo.fName IS NOT NULL THEN CONCAT(vo.fName, ' ', vo.lName)
-        ELSE v.fullName
-    END as fullName,
-    e.plateNum, e.entryTime, e.gateLocation 
-    FROM entryexitlog e 
-    LEFT JOIN vehicle vh ON e.plateNum = vh.plateNum
-    LEFT JOIN vehicleowner vo ON vh.OwnerID = vo.OwnerID
-    LEFT JOIN visitor v ON vh.visitorID = v.visitorID
-    $whereClause 
-    ORDER BY e.entryTime DESC LIMIT 10";
-$recentEntriesResult = $conn->query($recentEntriesQuery);
-
-$recentEntries = '';
-if ($recentEntriesResult && $recentEntriesResult->num_rows > 0) {
-    while ($row = $recentEntriesResult->fetch_assoc()) {
-        $name = $row['fullName'] ?: 'Unknown';
-        $plate = $row['plateNum'] ? '(' . $row['plateNum'] . ')' : '(No Vehicle)';
-        $time = date('g:i A', strtotime($row['entryTime']));
-        $gate = $row['gateLocation'] ?: 'Unknown Gate';
-        $recentEntries .= "$name $plate - $gate at $time<br>";
-    }
-} else {
-    $recentEntries = 'No entries found for this period.';
-}
+$vehicleTypeResult = $conn->query($vehicleTypeQuery);
+$roleResult = $conn->query($roleQuery);
 
 // Generate report content
 $content = "
 <h4>SUMMARY ($periodLabel)</h4>
-<p>
-    Total Entries: " . number_format($totalEntries) . "<br>
-    Unique Visitors: " . number_format($totalVisitors) . "<br>
-    Period: $periodLabel<br>
-    Report Generated: " . date('n/j/Y g:i:s A') . "
-</p>
-<h4>RECENT ACTIVITY</h4>
-<p>$recentEntries</p>
+<table style='width:100%; border-collapse: collapse; margin-bottom: 20px;'>
+    <tr>
+        <td style='padding: 8px; border: 1px solid #ddd;'>Total Entries</td>
+        <td style='padding: 8px; border: 1px solid #ddd;'><strong>" . number_format($totalEntries) . "</strong></td>
+    </tr>
+    <tr>
+        <td style='padding: 8px; border: 1px solid #ddd;'>Total Exits</td>
+        <td style='padding: 8px; border: 1px solid #ddd;'><strong>" . number_format($totalExits) . "</strong></td>
+    </tr>
+    <tr>
+        <td style='padding: 8px; border: 1px solid #ddd;'>Unique Vehicles</td>
+        <td style='padding: 8px; border: 1px solid #ddd;'><strong>" . number_format($totalUniqueVehicles) . "</strong></td>
+    </tr>
+</table>
+
+<h4>ENTRIES BY VEHICLE TYPE</h4>
+<table style='width:100%; border-collapse: collapse; margin-bottom: 20px;'>
+    <tr style='background-color: #f2f2f2;'>
+        <th style='padding: 8px; border: 1px solid #ddd; text-align: left;'>Vehicle Type</th>
+        <th style='padding: 8px; border: 1px solid #ddd; text-align: left;'>Count</th>
+    </tr>";
+
+if ($vehicleTypeResult && $vehicleTypeResult->num_rows > 0) {
+    while ($row = $vehicleTypeResult->fetch_assoc()) {
+        $content .= "
+    <tr>
+        <td style='padding: 8px; border: 1px solid #ddd;'>" . htmlspecialchars($row['vehicleType'] ?: 'Unknown') . "</td>
+        <td style='padding: 8px; border: 1px solid #ddd;'>" . number_format($row['count']) . "</td>
+    </tr>";
+    }
+} else {
+    $content .= "<tr><td colspan='2' style='padding: 8px; border: 1px solid #ddd; text-align: center;'>No data available</td></tr>";
+}
+
+$content .= "</table>
+
+<h4>ENTRIES BY USER ROLE</h4>
+<table style='width:100%; border-collapse: collapse; margin-bottom: 20px;'>
+    <tr style='background-color: #f2f2f2;'>
+        <th style='padding: 8px; border: 1px solid #ddd; text-align: left;'>Role</th>
+        <th style='padding: 8px; border: 1px solid #ddd; text-align: left;'>Count</th>
+    </tr>";
+
+if ($roleResult && $roleResult->num_rows > 0) {
+    while ($row = $roleResult->fetch_assoc()) {
+        $roleName = ucfirst(strtolower($row['userRole']));
+        $content .= "
+    <tr>
+        <td style='padding: 8px; border: 1px solid #ddd;'>" . htmlspecialchars($roleName) . "</td>
+        <td style='padding: 8px; border: 1px solid #ddd;'>" . number_format($row['count']) . "</td>
+    </tr>";
+    }
+} else {
+    $content .= "<tr><td colspan='2' style='padding: 8px; border: 1px solid #ddd; text-align: center;'>No data available</td></tr>";
+}
+
+$content .= "</table>
+<p style='font-size: 12px; color: #666;'>Report Generated: " . date('n/j/Y g:i:s A') . "</p>
 ";
 
 $db->closeConnection();

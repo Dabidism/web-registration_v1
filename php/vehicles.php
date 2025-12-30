@@ -58,15 +58,17 @@ include_once '../includes/header.php';
             <option value="pending">Pending</option>
           </select>
         </div>
-        <button class="add-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            class="lucide lucide-plus">
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
-          Add Vehicle
-        </button>
+        <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
+          <button class="add-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              class="lucide lucide-plus">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Add Vehicle
+          </button>
+        <?php endif; ?>
       </div>
     </div>
 
@@ -105,8 +107,10 @@ include_once '../includes/header.php';
                 <td>
                   <div class="action-buttons">
                     <button class="btn-view" data-plate="<?php echo $row['plateNum']; ?>">View</button>
-                    <button class="btn-edit" data-plate="<?php echo $row['plateNum']; ?>">Edit</button>
-                    <button class="btn-delete" data-plate="<?php echo $row['plateNum']; ?>">Delete</button>
+                    <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
+                      <button class="btn-edit" data-plate="<?php echo $row['plateNum']; ?>">Edit</button>
+                      <button class="btn-delete" data-plate="<?php echo $row['plateNum']; ?>">Delete</button>
+                    <?php endif; ?>
                   </div>
                 </td>
               </tr>

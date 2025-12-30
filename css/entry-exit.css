@@ -1,40 +1,89 @@
-table {
+/* Standardized Table Styles */
+.data-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  /* Consistent shadow */
+  table-layout: fixed;
 }
 
-th,
-td {
-  padding: 14px 16px;
+.data-table th,
+.data-table td {
+  padding: 16px;
   text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.data-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #374151;
   font-size: 14px;
-  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-th.action-word {
-  padding: 0px 0px 0px 35px;
+.data-table tbody tr {
+  transition: background-color 0.2s ease;
 }
 
-th.actions,
-td.actions {
-  text-align: right;
-  vertical-align: middle;
-  /* Ensure same width for header and cells */
-  width: 120px;
+.data-table tbody tr:hover {
+  background-color: #f8f9fa;
 }
 
-thead {
-  background: #f9f9f9;
+.data-table td {
+  color: #4b5563;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-tr:not(:last-child) {
-  border-bottom: 1px solid #eee;
+/* Role Badges */
+.role-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
+.role-student {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.role-faculty {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.role-non-teaching {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.role-visitor {
+  background-color: #fce7f3;
+  color: #9d174d;
+}
+
+/* Status Badges for Log Entries */
+.status-in {
+  color: #166534;
+  font-weight: 600;
+}
+
+.status-out {
+  color: #991b1b;
+  font-weight: 600;
+}
+
+/* Top Bar Styles */
 .top-bar {
   display: flex;
   justify-content: space-between;
@@ -53,7 +102,6 @@ tr:not(:last-child) {
 
 .search-box {
   display: flex;
-  /* align-items: center; */
   gap: 0;
 }
 
