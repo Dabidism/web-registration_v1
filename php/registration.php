@@ -69,7 +69,11 @@ require_once 'dbConnection.php';
           </div>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-3">
+          <div>
+            <label>School ID</label>
+            <input type="text" name="schoolID" placeholder="2026-0000-A" required />
+          </div>
           <div>
             <label>Email Address</label>
             <input type="email" name="email" placeholder="Enter your email address" required />
@@ -148,33 +152,39 @@ require_once 'dbConnection.php';
         </div>
       </section>
 
-      <section class="additional-driver-section">
-        <h3>Additional Driver (Optional)</h3>
-        <p>You may register one additional driver who is authorized to use your vehicle. This person will also be
-          allowed to enter the campus with your registered vehicle.</p>
+      <div id="additionalDriverContainer" class="additional-driver-wrapper">
+        <button type="button" class="add-driver-btn" id="addDriverBtn">+ Add Additional Driver</button>
 
-        <div class="grid-2">
-          <div>
-            <label>Additional Driver Name</label>
-            <input type="text" name="additionalDriverName" placeholder="Enter full name of additional driver" />
+        <section class="additional-driver-section hidden" id="additionalDriverSection">
+          <div class="section-header">
+            <h3>Additional Driver (Optional)</h3>
+            <button type="button" class="btn-delete-vehicle" id="removeDriverBtn">Remove</button>
           </div>
-          <div>
-            <label>Relationship to Vehicle Owner</label>
-            <select name="additionalDriverRelationship">
-              <option value="" disabled selected>Select Relationship</option>
-              <option value="Spouse">Spouse</option>
-              <option value="Child">Child</option>
-              <option value="Parent">Parent</option>
-              <option value="Sibling">Sibling</option>
-              <option value="Relative">Other Relative</option>
-              <option value="Friend">Friend</option>
-              <option value="Employee">Employee</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-      </section>
+          <p>You may register one additional driver who is authorized to use your vehicle.</p>
 
+          <div class="grid-2">
+            <div>
+              <label>Additional Driver Name</label>
+              <input type="text" name="additionalDriverName" id="additionalDriverName"
+                placeholder="Enter full name of additional driver" />
+            </div>
+            <div>
+              <label>Relationship to Vehicle Owner</label>
+              <select name="additionalDriverRelationship" id="additionalDriverRelationship">
+                <option value="" disabled selected>Select Relationship</option>
+                <option value="Spouse">Spouse</option>
+                <option value="Child">Child</option>
+                <option value="Parent">Parent</option>
+                <option value="Sibling">Sibling</option>
+                <option value="Relative">Other Relative</option>
+                <option value="Friend">Friend</option>
+                <option value="Employee">Employee</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
       <div id="vehicle-sections">
         <section class="vehicle-section">
           <div class="section-header">

@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!vehicleSections) return;
 
         const sections = vehicleSections.querySelectorAll('.vehicle-section');
-        const deleteButtons = document.querySelectorAll('.btn-delete-vehicle');
+        const deleteButtons = vehicleSections.querySelectorAll('.btn-delete-vehicle');
 
         if (sections.length <= 1) {
             deleteButtons.forEach(btn => btn.classList.add('hidden'));
@@ -430,5 +430,35 @@ document.addEventListener('DOMContentLoaded', function () {
             handleVehicleTypeChange(e.target);
         }
     });
+
+    // === Additional Driver Logic ===
+    const addDriverBtn = document.getElementById('addDriverBtn');
+    const removeDriverBtn = document.getElementById('removeDriverBtn');
+    const additionalDriverSection = document.getElementById('additionalDriverSection');
+    const additionalDriverNameInput = document.getElementById('additionalDriverName');
+    const additionalDriverRelSelect = document.getElementById('additionalDriverRelationship');
+
+    if (addDriverBtn && additionalDriverSection) {
+        addDriverBtn.addEventListener('click', function () {
+            additionalDriverSection.classList.remove('hidden');
+            addDriverBtn.classList.add('hidden');
+
+            // Make fields required when shown? Or keep optional?
+            // User request implies if they add it, they should fill it.
+            // But originally it was optional. Let's make it intuitive: if open and empty on submit, validation might catch it if we add required.
+            // For now, let's just show/hide.
+        });
+    }
+
+    if (removeDriverBtn && additionalDriverSection) {
+        removeDriverBtn.addEventListener('click', function () {
+            additionalDriverSection.classList.add('hidden');
+            addDriverBtn.classList.remove('hidden');
+
+            // Clear inputs
+            if (additionalDriverNameInput) additionalDriverNameInput.value = '';
+            if (additionalDriverRelSelect) additionalDriverRelSelect.value = '';
+        });
+    }
 
 });

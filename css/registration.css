@@ -672,3 +672,28 @@ label {
   color: red;
   margin-left: 5px;
 }
+
+.hidden {
+  display: none !important;
+}
+
+.additional-driver-wrapper {
+  margin-bottom: 20px;
+}
+
+.add-driver-btn {
+  background: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.add-driver-btn:hover {
+  background: #218838;
+}

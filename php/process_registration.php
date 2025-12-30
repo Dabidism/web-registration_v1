@@ -75,9 +75,9 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
                 $ownerID = 'O' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
 
                 // Insert into vehicleowner table
-                $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, additional_driver_name, additional_driver_relationship) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, schoolID, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, additional_driver_name, additional_driver_relationship) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?)");
                 $stmt->bind_param(
-                    "ssssssssssssssss",
+                    "ssssssssssssssssss",
                     $ownerID,
                     $firstApp['fName'],
                     $firstApp['lName'],
@@ -85,6 +85,7 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
                     $firstApp['role'],
                     $firstApp['email'],
                     $firstApp['contact_num'],
+                    $firstApp['schoolID'],
                     $firstApp['college'],
                     $firstApp['course'],
                     $firstApp['year'],
@@ -191,6 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $middleName = $_POST['middleName'] ?? '';
         $email = $_POST['email'];
         $contactNum = $_POST['contactNum'];
+        $schoolID = $_POST['schoolID']; // Capture School ID
         $college = $_POST['college'];
         $course = $_POST['course'];
         $academicYear = $_POST['academicYear'];
@@ -314,14 +316,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
 
                 // Insert into applications table only (pending approval)
-                $stmt = $conn->prepare("INSERT INTO applications (OwnerID, fName, lName, mName, role, email, contact_num, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, plateNum, vehicleType, model, manufacturer, color, cubicCapacity, numOfWheels, fuelType, offical_receipt, cert_of_registration, additional_driver_name, additional_driver_relationship) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO applications (OwnerID, fName, lName, mName, role, email, contact_num, schoolID, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, plateNum, vehicleType, model, manufacturer, color, cubicCapacity, numOfWheels, fuelType, offical_receipt, cert_of_registration, additional_driver_name, additional_driver_relationship) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
                 if (!$stmt) {
                     throw new Exception("Prepare failed: " . $conn->error);
                 }
 
                 $status = 'pending';
-                $stmt->bind_param("ssssssssssssssssssssiissss", $ownerID, $firstName, $lastName, $middleName, $userType, $email, $contactNum, $college, $course, $yearLevel, $section, $academicYear, $employmentType, $status, $driversLicense, $plateNumber, $vehicleType, $model, $manufacturer, $color, $cubicCapacity, $numWheels, $fuelType, $orPath, $crPath, $additionalDriverName, $additionalDriverRelationship);
+                // Note: The bind_param type string length must match 28 variables.
+                // Original before removal was "sssssssssssssssssssssiisssss" (28 chars).
+                // Let's verify: 
+                // 1. ownerID (s)
+                // 2. firstName (s)
+                // 3. lastName (s)
+                // 4. middleName (s)
+                // 5. userType (s)
+                // 6. email (s)
+                // 7. contactNum (s)
+                // 8. schoolID (s)
+                // 9. college (s)
+                // 10. course (s)
+                // 11. yearLevel (s)
+                // 12. section (s)
+                // 13. academicYear (s)
+                // 14. employmentType (s)
+                // 15. status (s)
+                // 16. driversLicense (s)
+                // 17. plateNumber (s)
+                // 18. vehicleType (s)
+                // 19. model (s)
+                // 20. manufacturer (s)
+                // 21. color (s)
+                // 22. cubicCapacity (i)
+                // 23. numWheels (i)
+                // 24. fuelType (s)
+                // 25. orPath (s)
+                // 26. crPath (s)
+                // 27. additionalDriverName (s)
+                // 28. additionalDriverRelationship (s)
+                // Total: 26 's' and 2 'i' = 28. 
+                // Wait, count carefully: 21 s, 2 i, 5 s = 28 chars.
+                // "sssssssssssssssssssssiisssss"
+
+                $stmt->bind_param("sssssssssssssssssssssiisssss", $ownerID, $firstName, $lastName, $middleName, $userType, $email, $contactNum, $schoolID, $college, $course, $yearLevel, $section, $academicYear, $employmentType, $status, $driversLicense, $plateNumber, $vehicleType, $model, $manufacturer, $color, $cubicCapacity, $numWheels, $fuelType, $orPath, $crPath, $additionalDriverName, $additionalDriverRelationship);
 
                 if (!$stmt->execute()) {
                     $success = false;
