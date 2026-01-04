@@ -36,7 +36,7 @@ if ($result) {
 }
 
 // Get parking allocation data
-$parkingResult = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+$parkingResult = $conn->query("SELECT * FROM parkingstatus ORDER BY id ASC LIMIT 1");
 $parkingData = $parkingResult ? $parkingResult->fetch_assoc() : null;
 
 // Get campus occupancy by role from historical_log and vehicle owner data
@@ -73,12 +73,13 @@ if ($result) {
 
 // Update parking status with current occupancy
 if ($parkingData) {
+  $configId = $parkingData['id'];
   $conn->query("UPDATE parkingstatus SET 
         currentOccupiedStudents = {$occupancyByRole['students']},
         currentOccupiedFaculty = {$occupancyByRole['faculty']},
         currentOccupiedStaff = {$occupancyByRole['staff']},
         currentOccupiedGuests = {$occupancyByRole['guests']}
-        WHERE id = 1");
+        WHERE id = $configId");
 }
 
 $stats['active_vehicles'] = array_sum($occupancyByRole);

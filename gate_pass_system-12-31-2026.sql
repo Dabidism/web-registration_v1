@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 06:22 AM
+-- Generation Time: Dec 30, 2025 at 07:18 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -113,7 +113,18 @@ INSERT INTO `accesslog` (`logID`, `userID`, `action`, `description`, `timestamp`
 (92, 'U118', 'login', 'Entry System - Guard guard4 logged in successfully', '2025-12-01 02:37:14'),
 (93, 'U000', 'logout', 'User logged out', '2025-12-01 13:15:00'),
 (94, 'U000', 'login', 'User logged in successfully', '2025-12-01 13:15:50'),
-(95, 'U116', 'login', 'Entry System - Guard guard3 logged in successfully', '2025-12-01 13:19:21');
+(95, 'U116', 'login', 'Entry System - Guard guard3 logged in successfully', '2025-12-01 13:19:21'),
+(96, NULL, 'failed_login', 'Failed login attempt for username: asd', '2025-12-29 19:06:18'),
+(97, 'U000', 'login', 'User logged in successfully', '2025-12-29 19:06:20'),
+(98, 'U000', 'login', 'User logged in successfully', '2025-12-29 19:06:44'),
+(99, 'U000', 'logout', 'User logged out', '2025-12-29 20:01:19'),
+(100, 'U000', 'login', 'User logged in successfully', '2025-12-29 20:01:26'),
+(101, 'U000', 'logout', 'User logged out', '2025-12-31 00:50:05'),
+(102, 'U112', 'login', 'User logged in successfully', '2025-12-31 00:50:11'),
+(103, 'U112', 'logout', 'User logged out', '2025-12-31 01:13:00'),
+(104, 'U000', 'login', 'User logged in successfully', '2025-12-31 01:13:03'),
+(105, 'U000', 'logout', 'User logged out', '2025-12-31 01:13:15'),
+(106, 'U112', 'login', 'User logged in successfully', '2025-12-31 01:13:20');
 
 -- --------------------------------------------------------
 
@@ -124,6 +135,7 @@ INSERT INTO `accesslog` (`logID`, `userID`, `action`, `description`, `timestamp`
 CREATE TABLE `applications` (
   `applicationID` int(11) NOT NULL,
   `OwnerID` varchar(10) DEFAULT NULL,
+  `schoolID` varchar(50) DEFAULT NULL,
   `fName` varchar(50) DEFAULT NULL,
   `lName` varchar(50) DEFAULT NULL,
   `mName` varchar(50) DEFAULT NULL,
@@ -137,6 +149,8 @@ CREATE TABLE `applications` (
   `section` varchar(10) DEFAULT NULL,
   `academicYear` varchar(20) DEFAULT NULL,
   `drivers_license` varchar(255) DEFAULT NULL,
+  `additional_driver_name` varchar(100) DEFAULT NULL,
+  `additional_driver_relationship` varchar(50) DEFAULT NULL,
   `plateNum` varchar(20) DEFAULT NULL,
   `vehicleType` varchar(50) DEFAULT NULL,
   `model` varchar(50) DEFAULT NULL,
@@ -155,14 +169,15 @@ CREATE TABLE `applications` (
 -- Dumping data for table `applications`
 --
 
-INSERT INTO `applications` (`applicationID`, `OwnerID`, `fName`, `lName`, `mName`, `role`, `employment_type`, `email`, `contact_num`, `college`, `course`, `year`, `section`, `academicYear`, `drivers_license`, `plateNum`, `vehicleType`, `model`, `manufacturer`, `color`, `cubicCapacity`, `numOfWheels`, `fuelType`, `offical_receipt`, `cert_of_registration`, `registrationStatus`, `applicationDate`) VALUES
-(1, 'A012', 'David Natan', 'Apruebo', 'Villegas', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '4th', 'A', '2025-2026', 'DL_upload/A001_license.jpg', 'NBC 1234', 'Car', 'Prius', 'Toyota', 'Black', NULL, 4, 'Diesel', 'OR_upload/A001_NBC 1234_OR.jpg', 'CR_upload/A001_NBC 1234_CR.jpg', 'approved', '2025-11-11 14:56:55'),
-(2, 'A013', 'David', 'Smurf', '', 'student', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '4th', 'A', '2025-2026', 'DL_upload/A001_license.jpg', 'NAT 0921', 'Motorcycle', 'CF 152', 'Keeway', 'Black', 6000, 2, 'Gasoline', 'OR_upload/A001_NAT 0921_OR.jpg', 'CR_upload/A001_NAT 0921_CR.jpg', 'approved', '2025-11-11 15:02:43'),
-(3, 'A014', 'Reynalds', 'Ilangos', '', 'faculty', 'permanent', 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'DL_upload/A001_license.jpg', 'DBA 4658', 'Motorcycle', 'PG-1', 'Toyota', 'Brown', 6000, 2, 'Gasoline', 'OR_upload/A001_DBA 4658_OR.jpg', 'CR_upload/A001_DBA 4658_CR.jpg', 'approved', '2025-11-11 15:15:58'),
-(4, NULL, 'Kapid', 'G', 'P', 'student', NULL, 'shekinah.gayonoche@students.isatu.edu.ph', '09123456789', 'COE', 'Bachelor of Elementary Education', '1st', 'F', '2025-2026', 'DL_upload/A001_license.jpeg', 'DFG098', 'Car', 'Crius', 'Toyota', 'Red', NULL, 4, 'Gasoline', 'OR_upload/A001_DFG098_OR.jpeg', 'CR_upload/A001_DFG098_CR.jpeg', 'approved', '2025-11-12 09:50:42'),
-(5, NULL, 'Kapid', 'G', 'P', 'student', NULL, 'shekinah.gayonoche@students.isatu.edu.ph', '09123456789', 'COE', 'Bachelor of Elementary Education', '1st', 'F', '2025-2026', 'DL_upload/A001_license.jpeg', 'DFG098', 'Car', 'Crius', 'Toyota', 'Red', NULL, 4, 'Gasoline', 'OR_upload/A001_DFG098_OR.jpeg', 'CR_upload/A001_DFG098_CR.jpeg', 'approved', '2025-11-12 09:50:42'),
-(6, 'A018', 'Chris', 'POrs', '3vles', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '318135132', 'CCI', 'Bachelor of Science in Computer Science', '4th', 'A', '2025-2026', 'DL_upload/A001_license.jpg', 'NBC5678', 'Motorcycle', 'Y', 'Tesla', 'black', 450, 2, 'Hybrid', 'OR_upload/A001_NBC5678_OR.jpg', 'CR_upload/A001_NBC5678_CR.jpg', 'approved', '2025-11-29 13:31:12'),
-(7, 'A019', 'Vox', 'Populi', '', 'non-teaching', 'job_hire', 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'DL_upload/A019_license.jpg', 'DAB0912', 'Car', '3', 'Tesla', 'Gray', NULL, 4, 'Electric', 'OR_upload/A019_DAB0912_OR.jpg', 'CR_upload/A019_DAB0912_CR.jpg', 'approved', '2025-12-01 03:28:11');
+INSERT INTO `applications` (`applicationID`, `OwnerID`, `schoolID`, `fName`, `lName`, `mName`, `role`, `employment_type`, `email`, `contact_num`, `college`, `course`, `year`, `section`, `academicYear`, `drivers_license`, `additional_driver_name`, `additional_driver_relationship`, `plateNum`, `vehicleType`, `model`, `manufacturer`, `color`, `cubicCapacity`, `numOfWheels`, `fuelType`, `offical_receipt`, `cert_of_registration`, `registrationStatus`, `applicationDate`) VALUES
+(2, 'A013', NULL, 'David', 'Smurf', '', 'student', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '4th', 'A', '2025-2026', 'DL_upload/A001_license.jpg', NULL, NULL, 'NAT 0921', 'Motorcycle', 'CF 152', 'Keeway', 'Black', 6000, 2, 'Gasoline', 'OR_upload/A001_NAT 0921_OR.jpg', 'CR_upload/A001_NAT 0921_CR.jpg', 'approved', '2025-11-11 15:02:43'),
+(3, 'A014', NULL, 'Reynalds', 'Ilangos', '', 'faculty', 'permanent', 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'DL_upload/A001_license.jpg', NULL, NULL, 'DBA 4658', 'Motorcycle', 'PG-1', 'Toyota', 'Brown', 6000, 2, 'Gasoline', 'OR_upload/A001_DBA 4658_OR.jpg', 'CR_upload/A001_DBA 4658_CR.jpg', 'approved', '2025-11-11 15:15:58'),
+(4, NULL, NULL, 'Kapid', 'G', 'P', 'student', NULL, 'shekinah.gayonoche@students.isatu.edu.ph', '09123456789', 'COE', 'Bachelor of Elementary Education', '1st', 'F', '2025-2026', 'DL_upload/A001_license.jpeg', NULL, NULL, 'DFG098', 'Car', 'Crius', 'Toyota', 'Red', NULL, 4, 'Gasoline', 'OR_upload/A001_DFG098_OR.jpeg', 'CR_upload/A001_DFG098_CR.jpeg', 'approved', '2025-11-12 09:50:42'),
+(5, NULL, NULL, 'Kapid', 'G', 'P', 'student', NULL, 'shekinah.gayonoche@students.isatu.edu.ph', '09123456789', 'COE', 'Bachelor of Elementary Education', '1st', 'F', '2025-2026', 'DL_upload/A001_license.jpeg', NULL, NULL, 'DFG098', 'Car', 'Crius', 'Toyota', 'Red', NULL, 4, 'Gasoline', 'OR_upload/A001_DFG098_OR.jpeg', 'CR_upload/A001_DFG098_CR.jpeg', 'approved', '2025-11-12 09:50:42'),
+(6, 'A018', NULL, 'Chris', 'POrs', '3vles', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '318135132', 'CCI', 'Bachelor of Science in Computer Science', '4th', 'A', '2025-2026', 'DL_upload/A001_license.jpg', NULL, NULL, 'NBC5678', 'Motorcycle', 'Y', 'Tesla', 'black', 450, 2, 'Hybrid', 'OR_upload/A001_NBC5678_OR.jpg', 'CR_upload/A001_NBC5678_CR.jpg', 'approved', '2025-11-29 13:31:12'),
+(7, 'A019', NULL, 'Vox', 'Populi', '', 'non-teaching', 'job_hire', 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'DL_upload/A019_license.jpg', NULL, NULL, 'DAB0912', 'Car', '3', 'Tesla', 'Gray', NULL, 4, 'Electric', 'OR_upload/A019_DAB0912_OR.jpg', 'CR_upload/A019_DAB0912_CR.jpg', 'approved', '2025-12-01 03:28:11'),
+(10, 'A020', '2022-4391-A', 'David Natan', 'Apruebo', 'Villegas', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '5th', 'A', '2025-2026', 'DL_upload/A020_1767117539_license.jpg', 'dabidism', 'Friend', 'NAT0921', 'Car', 'Civic', 'Honda', 'Black', NULL, 4, 'Gasoline', 'OR_upload/A020_NAT0921_1767117539_OR.jpg', 'CR_upload/A020_NAT0921_1767117539_CR.jpg', 'approved', '2025-12-31 01:58:59'),
+(11, 'A020', '2022-4391-A', 'David Natan', 'Apruebo', 'Villegas', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '5th', 'A', '2025-2026', 'DL_upload/A020_1767117539_license.jpg', 'dabidism', 'Friend', 'asdasd', 'Car', 'Y', 'Tesla', 'Red', NULL, 4, 'Electric', 'OR_upload/A020_asdasd_1767117539_OR.jpg', 'CR_upload/A020_asdasd_1767117539_CR.jpg', 'approved', '2025-12-31 01:58:59');
 
 -- --------------------------------------------------------
 
@@ -237,7 +252,7 @@ CREATE TABLE `parkingstatus` (
 --
 
 INSERT INTO `parkingstatus` (`id`, `totalCapacity`, `allocatedStudents`, `allocatedFaculty`, `allocatedStaff`, `allocatedGuests`, `currentOccupiedStudents`, `currentOccupiedFaculty`, `currentOccupiedStaff`, `currentOccupiedGuests`, `lastUpdated`) VALUES
-(1, 700, 100, 50, 30, 20, 0, 0, 0, 0, '2025-12-01 05:17:36');
+(1, 200, 20, 48, 20, 12, 0, 1, 0, 0, '2025-12-30 17:13:12');
 
 -- --------------------------------------------------------
 
@@ -261,7 +276,7 @@ INSERT INTO `rfidtag` (`stickerID`, `rfidCode`, `issuedAt`, `status`, `expiratio
 ('S001', 'E0F8FEFE009806006000181800869E666000006678066060E6', '2025-11-28 02:52:45', 'active', '2026-11-28'),
 ('S002', 'E0F8FEFE009806006000181800869E66600000666060067E18', '2025-12-01 03:41:24', 'active', '2026-11-28'),
 ('S003', 'E0F8FEFE009806006000181800869E66600000666060067E60', '2025-11-29 13:34:37', 'active', '2026-11-28'),
-('S004', 'E0F8FEFE009806006000181800869E66600000667806606006', '2025-12-01 13:16:55', 'active', '2026-12-01');
+('S004', 'E0F8FEFE009806006000181800869E66600000667806606006', '2025-12-01 13:16:55', 'inactive', '2026-12-01');
 
 -- --------------------------------------------------------
 
@@ -289,7 +304,7 @@ CREATE TABLE `user` (
   `passID` varchar(10) DEFAULT NULL,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `role` enum('staff','admin','guard') NOT NULL
+  `role` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -297,12 +312,12 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`userID`, `registrationID`, `passID`, `username`, `password`, `role`) VALUES
-('U000', NULL, NULL, 'admin', '$2b$12$IJsZGZpGAoobVdFE3Cf9Y.uU2XYtIe3EM5TxHWl9hfTyG1t2s4P.C', 'admin'),
-('U112', NULL, NULL, 'dabidism', '$2y$10$jLSBnavfGXudus9vFdBwCeleQUR5B3HJdjXL2fE4r7lry1vQqkre6', 'staff'),
+('U000', NULL, NULL, 'admin', '$2b$12$IJsZGZpGAoobVdFE3Cf9Y.uU2XYtIe3EM5TxHWl9hfTyG1t2s4P.C', 'SSEDMMO Admin'),
+('U112', NULL, NULL, 'dabidism', '$2y$10$jLSBnavfGXudus9vFdBwCeleQUR5B3HJdjXL2fE4r7lry1vQqkre6', 'SSEDMMO Staff'),
 ('U114', NULL, NULL, 'john', '$2y$10$yGsu7zSlMNkvU.v7Pe6sM.SrBzLtpz.L7tjPg4r8Jdr8ncr5KWsFe', 'guard'),
 ('U115', NULL, NULL, 'guard2', '$2y$10$8tb3w7PthLOKH.oEsb/XJ.xnv3QzpWpCPYYCHl/oqsxrH7/tkdqPS', 'guard'),
 ('U116', NULL, NULL, 'guard3', '$2y$10$N34OSHx.b6umfUW6stZSAebS3Dsu3bcH9VXav1H.jTy9ZkOfRrFq2', 'guard'),
-('U117', NULL, NULL, 'dabmin', '$2y$10$3/6pAkQXpSdAvXb8OQpSw.g9TPN6yjdS.5ECHQPud4VW7L1bgs2Y.', 'admin'),
+('U117', NULL, NULL, 'dabmin', '$2y$10$3/6pAkQXpSdAvXb8OQpSw.g9TPN6yjdS.5ECHQPud4VW7L1bgs2Y.', 'SSEDMMO Admin'),
 ('U118', NULL, NULL, 'guard4', '$2y$10$ZEUljeOlwD/RLUNr3qPk6eFHQzmcss0HYfONBd5tVdj7wGKqKmG/y', 'guard');
 
 -- --------------------------------------------------------
@@ -333,8 +348,10 @@ CREATE TABLE `vehicle` (
 --
 
 INSERT INTO `vehicle` (`plateNum`, `OwnerID`, `stickerID`, `visitorID`, `vehicleType`, `model`, `manufacturer`, `color`, `cubicCapacity`, `numOfWheels`, `fuelType`, `offical_receipt`, `cert_of_registration`, `carpassid`) VALUES
-('DAB0912', 'A019', 'S004', NULL, 'Car', '3', 'Tesla', 'Gray', NULL, 4, 'Electric', 'OR_upload/A019_DAB0912_OR.jpg', 'CR_upload/A019_DAB0912_CR.jpg', 'CP002'),
+('asdasd', 'A020', NULL, NULL, 'Car', 'Y', 'Tesla', 'Red', NULL, 4, 'Electric', 'OR_upload/A020_asdasd_1767117539_OR.jpg', 'CR_upload/A020_asdasd_1767117539_CR.jpg', NULL),
+('DAB0912', 'A019', NULL, NULL, 'Car', '3', 'Tesla', 'Gray', NULL, 4, 'Electric', 'OR_upload/A019_DAB0912_OR.jpg', 'CR_upload/A019_DAB0912_CR.jpg', NULL),
 ('DBA4658', 'A014', 'S002', NULL, 'Motorcycle', 'PG-1', 'Toyota', 'Brown', 6000, 2, 'Gasoline', 'OR_upload/A001_DBA 4658_OR.jpg', 'CR_upload/A001_DBA 4658_CR.jpg', 'CP001'),
+('NAT0921', 'A020', NULL, NULL, 'Car', 'Civic', 'Honda', 'Black', NULL, 4, 'Gasoline', 'OR_upload/A020_NAT0921_1767117539_OR.jpg', 'CR_upload/A020_NAT0921_1767117539_CR.jpg', NULL),
 ('NBC1234', 'A013', 'S001', NULL, 'Motorcycle', 'CF 152', 'Keeway', 'Black', 6000, 2, 'Gasoline', 'OR_upload/A001_NAT 0921_OR.jpg', 'CR_upload/A001_NAT 0921_CR.jpg', NULL),
 ('NBC5678', 'A018', NULL, NULL, 'Motorcycle', 'Y', 'Tesla', 'black', 450, 2, 'Hybrid', 'OR_upload/A001_NBC5678_OR.jpg', 'CR_upload/A001_NBC5678_CR.jpg', NULL),
 ('VIS101', NULL, NULL, 'V101', 'Car', 'Mirage', 'Mitsubishi', 'Gray', 1200, 4, 'Gasoline', 'OR_upload/VIS101_OR.png', 'CR_upload/VIS101_CR.png', NULL),
@@ -351,6 +368,7 @@ INSERT INTO `vehicle` (`plateNum`, `OwnerID`, `stickerID`, `visitorID`, `vehicle
 
 CREATE TABLE `vehicleowner` (
   `OwnerID` varchar(10) NOT NULL,
+  `schoolID` varchar(50) DEFAULT NULL,
   `fName` varchar(50) DEFAULT NULL,
   `lName` varchar(50) DEFAULT NULL,
   `mName` varchar(50) DEFAULT NULL,
@@ -365,19 +383,21 @@ CREATE TABLE `vehicleowner` (
   `academicYear` varchar(20) DEFAULT NULL,
   `registrationStatus` enum('pending','approved','rejected') DEFAULT 'pending',
   `approvalTimestamp` datetime DEFAULT NULL,
-  `drivers_license` varchar(255) DEFAULT NULL
+  `drivers_license` varchar(255) DEFAULT NULL,
+  `additional_driver_name` varchar(100) DEFAULT NULL,
+  `additional_driver_relationship` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `vehicleowner`
 --
 
-INSERT INTO `vehicleowner` (`OwnerID`, `fName`, `lName`, `mName`, `role`, `employment_type`, `email`, `contact_num`, `college`, `course`, `year`, `section`, `academicYear`, `registrationStatus`, `approvalTimestamp`, `drivers_license`) VALUES
-('A012', 'David Natan', 'Apruebo', 'Villegas', 'student', '', 'davidnatan.apruebo@students.isatu.edu.ph', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '4th', 'A', '2025-2026', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg'),
-('A013', 'David', 'Smurf', '', 'student', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '4th', 'A', '2025-2026', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg'),
-('A014', 'Reynalds', 'Ilangos', '', 'faculty', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg'),
-('A018', 'Chris', 'POrs', '3vles', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '318135132', 'CCI', 'Bachelor of Science in Computer Science', '4th', 'A', '2025-2026', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg'),
-('A019', 'Vox', 'Populi', '', 'non-teaching', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'approved', '2025-11-30 20:28:26', 'DL_upload/A019_license.jpg');
+INSERT INTO `vehicleowner` (`OwnerID`, `schoolID`, `fName`, `lName`, `mName`, `role`, `employment_type`, `email`, `contact_num`, `college`, `course`, `year`, `section`, `academicYear`, `registrationStatus`, `approvalTimestamp`, `drivers_license`, `additional_driver_name`, `additional_driver_relationship`) VALUES
+('A013', NULL, 'David', 'Smurf', '', 'student', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '4th', 'A', '2025-2026', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg', NULL, NULL),
+('A014', NULL, 'Reynalds', 'Ilangos', '', 'faculty', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg', NULL, NULL),
+('A018', NULL, 'Chris', 'POrs', '3vles', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '318135132', 'CCI', 'Bachelor of Science in Computer Science', '4th', 'A', '2025-2026', 'approved', '2025-12-01 02:47:09', 'DL_upload/A001_license.jpg', NULL, NULL),
+('A019', NULL, 'Vox', 'Populi', '', 'non-teaching', NULL, 'dvdsmrf@gmail.com', '09503903276', 'CCI', '', '', '', '', 'approved', '2025-11-30 20:28:26', 'DL_upload/A019_license.jpg', NULL, NULL),
+('A020', NULL, 'David Natan', 'Apruebo', 'Villegas', 'student', NULL, 'davidnatan.apruebo@students.isatu.edu.ph', '09503903276', 'CCI', 'Bachelor of Science in Information Technology', '5th', 'A', '2025-2026', 'approved', '2025-12-30 19:00:01', 'DL_upload/A020_1767117539_license.jpg', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -557,13 +577,13 @@ ALTER TABLE `visitorlog`
 -- AUTO_INCREMENT for table `accesslog`
 --
 ALTER TABLE `accesslog`
-  MODIFY `logID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
+  MODIFY `logID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
 
 --
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `applicationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `applicationID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `parkingstatus`
@@ -580,12 +600,6 @@ ALTER TABLE `parkingstatus`
 --
 ALTER TABLE `accesslog`
   ADD CONSTRAINT `accesslog_ibfk_user` FOREIGN KEY (`userID`) REFERENCES `user` (`userID`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
--- Constraints for table `applications`
---
-ALTER TABLE `applications`
-  ADD CONSTRAINT `applications_ibfk_owner` FOREIGN KEY (`OwnerID`) REFERENCES `vehicleowner` (`OwnerID`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `entryexitlog`

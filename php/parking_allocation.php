@@ -17,16 +17,18 @@ require_once 'dbConnection.php';
 $db = new Database();
 $conn = $db->getConnection();
 
-// Get current parking allocation data
-$result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+// Get current parking allocation data (fetch the first available row)
+$result = $conn->query("SELECT * FROM parkingstatus ORDER BY id ASC LIMIT 1");
 $parkingData = $result->fetch_assoc();
 
 if (!$parkingData) {
     // Insert default data if none exists
     $conn->query("INSERT INTO parkingstatus (totalCapacity, allocatedStudents, allocatedFaculty, allocatedStaff, allocatedGuests) VALUES (200, 100, 50, 30, 20)");
-    $result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+    $result = $conn->query("SELECT * FROM parkingstatus ORDER BY id ASC LIMIT 1");
     $parkingData = $result->fetch_assoc();
 }
+
+$configId = $parkingData['id'];
 
 // Update current occupancy from historical_log
 $occupancyByRole = [
@@ -65,10 +67,10 @@ $conn->query("UPDATE parkingstatus SET
     currentOccupiedFaculty = {$occupancyByRole['faculty']},
     currentOccupiedStaff = {$occupancyByRole['staff']},
     currentOccupiedGuests = {$occupancyByRole['guests']}
-    WHERE id = 1");
+    WHERE id = $configId");
 
 // Refresh parking data with updated occupancy
-$result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+$result = $conn->query("SELECT * FROM parkingstatus WHERE id = $configId");
 $parkingData = $result->fetch_assoc();
 
 // Handle form submission
@@ -94,13 +96,13 @@ if ($_POST) {
         $totalAllocated = $allocatedStudents + $allocatedFaculty + $allocatedStaff + $allocatedGuests;
 
         if ($totalAllocated <= $totalCapacity) {
-            $stmt = $conn->prepare("UPDATE parkingstatus SET totalCapacity = ?, allocatedStudents = ?, allocatedFaculty = ?, allocatedStaff = ?, allocatedGuests = ? WHERE id = 1");
-            $stmt->bind_param("iiiii", $totalCapacity, $allocatedStudents, $allocatedFaculty, $allocatedStaff, $allocatedGuests);
+            $stmt = $conn->prepare("UPDATE parkingstatus SET totalCapacity = ?, allocatedStudents = ?, allocatedFaculty = ?, allocatedStaff = ?, allocatedGuests = ? WHERE id = ?");
+            $stmt->bind_param("iiiiii", $totalCapacity, $allocatedStudents, $allocatedFaculty, $allocatedStaff, $allocatedGuests, $configId);
 
             if ($stmt->execute()) {
                 $success = "Parking allocation updated successfully!";
                 // Refresh data
-                $result = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+                $result = $conn->query("SELECT * FROM parkingstatus WHERE id = $configId");
                 $parkingData = $result->fetch_assoc();
             } else {
                 $error = "Error updating parking allocation.";
