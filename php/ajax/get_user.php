@@ -18,7 +18,11 @@ $db = new Database();
 $conn = $db->getConnection();
 
 $userID = $_GET['id'];
-$stmt = $conn->prepare("SELECT userID, username, role FROM user WHERE userID = ?");
+$query = "SELECT u.userID, u.username, u.role, u.created_at, 
+          (SELECT MAX(timestamp) FROM accesslog WHERE userID = u.userID AND action = 'login') as last_login 
+          FROM user u 
+          WHERE u.userID = ?";
+$stmt = $conn->prepare($query);
 $stmt->bind_param("s", $userID);
 $stmt->execute();
 $result = $stmt->get_result();

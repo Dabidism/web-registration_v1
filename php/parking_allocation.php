@@ -1,8 +1,11 @@
 <?php
 session_start();
 
-// Check if user is logged in and is either Admin or Staff
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['SSEDMMO Admin', 'SSEDMMO Staff'])) {
+// Check authentication and single session
+require_once 'auth_check.php';
+
+// Check if user is either Admin or Staff
+if (!in_array($_SESSION['role'], ['SSEDMMO Admin', 'SSEDMMO Staff'])) {
     header("Location: login.php");
     exit;
 }

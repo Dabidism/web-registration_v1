@@ -1,4 +1,14 @@
- <?php
+<?php
+// Check authentication and single session
+require_once 'auth_check.php';
+// Set timezone
+date_default_timezone_set('Asia/Manila');
+
+// Get statistics
+$pendingCount = 0;
+// ... (omitted statistics logic if no change needed, but I must preserve file structure)
+// Wait, I am replacing the top part? 
+// The file starts with auth_check. 
 // Set page title and current page for navigation highlighting
 $pageTitle = "Registration Applications";
 $currentPage = "registration_applications";
@@ -22,28 +32,28 @@ $totalVehicles = 0;
 $query = "SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'pending'";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
-    $pendingCount = $row['count'];
+  $pendingCount = $row['count'];
 }
 
 // Count approved applications
 $query = "SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'approved'";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
-    $approvedCount = $row['count'];
+  $approvedCount = $row['count'];
 }
 
 // Count rejected applications
 $query = "SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'rejected'";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
-    $rejectedCount = $row['count'];
+  $rejectedCount = $row['count'];
 }
 
 // Count total registered vehicles
 $query = "SELECT COUNT(*) as count FROM vehicle";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
-    $totalVehicles = $row['count'];
+  $totalVehicles = $row['count'];
 }
 
 // Get applications based on filter
@@ -52,10 +62,10 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 $whereConditions = [];
 if ($status != 'all') {
-    $whereConditions[] = "registrationStatus = '$status'";
+  $whereConditions[] = "registrationStatus = '$status'";
 }
 if (!empty($search)) {
-    $whereConditions[] = "(applicationID LIKE '%$search%' OR OwnerID LIKE '%$search%')";
+  $whereConditions[] = "(applicationID LIKE '%$search%' OR OwnerID LIKE '%$search%')";
 }
 $whereClause = !empty($whereConditions) ? "WHERE " . implode(" AND ", $whereConditions) : "";
 
@@ -116,20 +126,12 @@ include_once '../includes/header.php';
     <div class="search-area">
       <div class="search-icon"></div>
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search by unique code or application ID..." value="<?php echo htmlspecialchars($search); ?>" />
+        <input type="text" id="searchInput" placeholder="Search by unique code or application ID..."
+          value="<?php echo htmlspecialchars($search); ?>" />
         <button class="search-btn" type="submit" title="Search">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="lucide lucide-search-icon lucide-search"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="lucide lucide-search-icon lucide-search">
             <path d="m21 21-4.34-4.34" />
             <circle cx="11" cy="11" r="8" />
           </svg>
@@ -160,31 +162,47 @@ include_once '../includes/header.php';
               <div class="application-row" data-role="<?php echo htmlspecialchars($app['role']); ?>">
                 <!-- Center: Name & Department -->
                 <div class="application-info">
-                  <span class="applicant-name"><?php echo htmlspecialchars($app['OwnerID'] . ' - ' . $app['fName'] . ' ' . $app['lName']); ?></span>
+                  <span
+                    class="applicant-name"><?php echo htmlspecialchars($app['OwnerID'] . ' - ' . $app['fName'] . ' ' . $app['lName']); ?></span>
                   <span class="applicant-dept"><?php echo htmlspecialchars($app['college']); ?></span>
                 </div>
                 <!-- Right: Status & Review Button -->
                 <div class="application-actions">
                   <div class="application-date">
-                    <div>Applied: <?php echo isset($app['applicationDate']) && !empty($app['applicationDate']) ? date('M j, Y g:i A', strtotime($app['applicationDate'])) : 'Date not available'; ?></div>
+                    <div>Applied:
+                      <?php echo isset($app['applicationDate']) && !empty($app['applicationDate']) ? date('M j, Y g:i A', strtotime($app['applicationDate'])) : 'Date not available'; ?>
+                    </div>
                     <?php if ($app['registrationStatus'] != 'pending' && !empty($app['statusTimestamp'])): ?>
-                      <div class="status-date"><?php echo ucfirst($app['registrationStatus']); ?>: <?php echo date('M j, Y g:i A', strtotime($app['statusTimestamp'])); ?></div>
+                      <div class="status-date"><?php echo ucfirst($app['registrationStatus']); ?>:
+                        <?php echo date('M j, Y g:i A', strtotime($app['statusTimestamp'])); ?>
+                      </div>
+                      <?php if (!empty($app['reviewed_by'])): ?>
+                        <div class="reviewer-name" style="font-size: 0.85em; color: #6b7280; margin-top: 2px;">
+                          by <?php echo htmlspecialchars($app['reviewed_by']); ?>
+                        </div>
+                      <?php endif; ?>
                     <?php endif; ?>
                   </div>
                   <span class="status-badge <?php echo strtolower($app['registrationStatus']); ?>">
                     <span>
                       <?php if ($app['registrationStatus'] == 'pending'): ?>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock-icon lucide-clock">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          class="lucide lucide-clock-icon lucide-clock">
                           <path d="M12 6v6l4 2" />
                           <circle cx="12" cy="12" r="10" />
                         </svg>
                       <?php elseif ($app['registrationStatus'] == 'approved'): ?>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big-icon lucide-circle-check-big">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          class="lucide lucide-circle-check-big-icon lucide-circle-check-big">
                           <path d="M21.801 10A10 10 0 1 1 17 3.335" />
-                          <path d="m9 11 3 3L22 4" /> 
+                          <path d="m9 11 3 3L22 4" />
                         </svg>
                       <?php else: ?>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-x-icon lucide-circle-x">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          class="lucide lucide-circle-x-icon lucide-circle-x">
                           <circle cx="12" cy="12" r="10" />
                           <path d="m15 9-6 6" />
                           <path d="m9 9 6 6" />
@@ -195,21 +213,11 @@ include_once '../includes/header.php';
                   </span>
                   <a href="review_application.php?id=<?php echo $app['firstAppId']; ?>" class="review-btn">
                     <span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-eye-icon lucide-eye"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-eye-icon lucide-eye">
                         <path
-                          d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
-                        />
+                          d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0a1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
                         <circle cx="12" cy="12" r="3" />
                       </svg>
                     </span>

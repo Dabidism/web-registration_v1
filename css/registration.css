@@ -206,6 +206,7 @@ h3 {
 
 input[type="text"],
 input[type="email"],
+input[type="number"],
 select {
   padding: 10px;
   border: 1px solid #ccc;

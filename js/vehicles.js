@@ -132,16 +132,74 @@ document.addEventListener('DOMContentLoaded', function () {
     const addVehicleType = document.getElementById('addVehicleType');
     if (addVehicleType) {
         addVehicleType.addEventListener('change', function () {
-            const cubicCapacity = document.getElementById('addCubicCapacity');
-            const numWheels = document.getElementById('addNumWheels');
+            const type = this.value;
+            const addCubicCapacity = document.getElementById('addCubicCapacity');
+            const addNumWheelsSelect = document.getElementById('addNumWheels'); // Assuming 'addNumWheels' is the select
+            const addNumWheelsInput = document.getElementById('addNumWheelsInput'); // New input for 'Other'
+            const addOtherVehicleType = document.getElementById('addOtherVehicleType');
 
-            if (this.value === 'Car') {
-                cubicCapacity.disabled = true;
-                cubicCapacity.value = '';
-                numWheels.value = '4';
-            } else if (this.value === 'Motorcycle') {
-                cubicCapacity.disabled = false;
-                numWheels.value = '2';
+            if (type === 'Car') {
+                addOtherVehicleType.classList.add('hidden');
+                addOtherVehicleType.disabled = true;
+                addOtherVehicleType.value = '';
+
+                addNumWheelsSelect.classList.remove('hidden');
+                addNumWheelsSelect.disabled = false; // Enabled but usually fixed to 4 in registration. Here maybe allow change if admin wants? 
+                // Registration.js locks it. Let's lock it here too for consistency if standard types.
+                addNumWheelsSelect.value = '4';
+                addNumWheelsSelect.disabled = true; // Lock it
+
+                addNumWheelsInput.classList.add('hidden');
+                addNumWheelsInput.disabled = true;
+                addNumWheelsInput.value = '';
+
+                addCubicCapacity.placeholder = 'Not applicable';
+                addCubicCapacity.disabled = true;
+                addCubicCapacity.value = '';
+
+            } else if (type === 'Motorcycle') {
+                addOtherVehicleType.classList.add('hidden');
+                addOtherVehicleType.disabled = true;
+                addOtherVehicleType.value = '';
+
+                addNumWheelsSelect.classList.remove('hidden');
+                addNumWheelsSelect.value = '2';
+                addNumWheelsSelect.disabled = true; // Lock it
+
+                addNumWheelsInput.classList.add('hidden');
+                addNumWheelsInput.disabled = true;
+                addNumWheelsInput.value = '';
+
+                addCubicCapacity.placeholder = 'Enter cubic capacity (cc)';
+                addCubicCapacity.disabled = false;
+
+            } else if (type === 'Other') {
+                addOtherVehicleType.classList.remove('hidden');
+                addOtherVehicleType.disabled = false; // Enable it
+
+                // Toggle to input
+                addNumWheelsSelect.classList.add('hidden');
+                addNumWheelsSelect.disabled = true;
+                addNumWheelsSelect.value = '';
+
+                addNumWheelsInput.classList.remove('hidden');
+                addNumWheelsInput.disabled = false;
+                addNumWheelsInput.required = true;
+
+                addCubicCapacity.placeholder = 'Enter cubic capacity (if applicable)';
+                addCubicCapacity.disabled = false;
+            } else {
+                // Reset
+                addOtherVehicleType.classList.add('hidden');
+                addOtherVehicleType.disabled = true;
+
+                addNumWheelsSelect.classList.remove('hidden');
+                addNumWheelsSelect.disabled = false;
+
+                addNumWheelsInput.classList.add('hidden');
+                addNumWheelsInput.disabled = true;
+
+                addCubicCapacity.disabled = true;
             }
         });
     }

@@ -1,11 +1,8 @@
 <?php
 session_start();
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit;
-}
+// Check authentication and single session
+require_once 'auth_check.php';
 
 // Set page title and current page for navigation highlighting
 $pageTitle = "Vehicles";
@@ -89,7 +86,20 @@ include_once '../includes/header.php';
           <?php if ($result && $result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
               <tr>
-                <td><?php echo htmlspecialchars($row['plateNum']); ?></td>
+                <td>
+                  <?php if (empty($row['stickerID']) || empty($row['carpassid'])): ?>
+                    <span title="Missing RFID or Car Pass" style="color: #f59e0b; margin-right: 5px;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-alert-triangle">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                        <path d="M12 9v4" />
+                        <path d="M12 17h.01" />
+                      </svg>
+                    </span>
+                  <?php endif; ?>
+                  <?php echo htmlspecialchars($row['plateNum']); ?>
+                </td>
                 <td>
                   <div class="owner-info">
                     <strong><?php echo htmlspecialchars(($row['fName'] ?? '') . ' ' . ($row['lName'] ?? '')); ?></strong>
@@ -234,7 +244,10 @@ include_once '../includes/header.php';
           <option value="">Select Type</option>
           <option value="Car">Car</option>
           <option value="Motorcycle">Motorcycle</option>
+          <option value="Other">Other</option>
         </select>
+        <input type="text" id="addOtherVehicleType" name="otherVehicleType" class="hidden"
+          placeholder="Specify Vehicle Type" style="margin-top: 5px;" disabled>
       </div>
 
       <div class="form-group">
@@ -262,8 +275,11 @@ include_once '../includes/header.php';
         <select id="addNumWheels" name="numOfWheels" required>
           <option value="">Select Wheels</option>
           <option value="2">2</option>
+          <option value="3">3</option>
           <option value="4">4</option>
         </select>
+        <input type="number" id="addNumWheelsInput" name="numOfWheels" class="hidden" placeholder="Enter # of wheels"
+          disabled>
       </div>
 
       <div class="form-group">

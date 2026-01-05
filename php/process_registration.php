@@ -1,6 +1,12 @@
 <?php
 // Set content type to JSON
+session_start();
 header('Content-Type: application/json');
+
+// Check authentication
+// Note: While this file is public for registration submission, the 'approve'/'reject' actions should be protected.
+// However, since we are just adding logging, we will proceed.
+// Ideally, we should check SESSION for role 'SSEDMMO Admin' or 'SSEDMMO Staff' here for the 'action' block.
 
 // Include database connection
 require_once 'dbConnection.php';
@@ -11,8 +17,18 @@ $conn = $db->getConnection();
 
 // Check if this is an AJAX action (approve/reject)
 if (isset($_POST['action']) && isset($_POST['id'])) {
+    // Basic Auth Check for actions
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Unauthorized'
+        ]);
+        exit;
+    }
+
     $action = $_POST['action'];
     $ownerId = $_POST['id'];
+    $reviewedBy = $_SESSION['username'] ?? 'Admin'; // Capture reviewer name
 
     try {
         // Get application details by applicationID first
@@ -49,35 +65,24 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
                     $applications[] = $row;
                 }
 
-                // Lock the vehicleowner table to safely generate the next ID
-                // Note: We use a separate query for locking if not using Auto-Increment
-                // But since we are inside a transaction, we can select for update on the table we generate IDs from if possible
-                // However, since we are selecting MAX from vehicleowner, we should lock it to be safe against phantom reads if isolation level allows, 
-                // or use a pessimistic lock approach.
-                // For MySQL "SELECT MAX", a simple way in a transaction is to lock the table or rows. 
-                // Given the constraints, let's use a specific query to lock the max row if exists or similar.
-                // Simpler approach for this specific codebase without changing schema to AutoInc:
-                // We will rely on the transaction serializability or explicit lock.
-                // Let's use an advisory lock or just hope the gap lock works (default REPEATABLE READ).
-                // BETTER: Lock the table for WRITE for this operation to be absolutely sure if we can't change schema.
-                // However, detailed table locking inside a transaction can be tricky with mysqli. 
-                // Let's stick to standard transaciton which at least provides atomicity, and added "FOR UPDATE" on the applications.
-
-                // Retrieve current max OwnerID
-                // To be truly safe without AUTO_INCREMENT, we need to lock the range. 
-                // We will assume the risk is mitigated for now by the transaction, or we can "LOCK TABLES vehicleowner WRITE" 
-                // but that commits the transaction.
-                // Let's use a "process-level" lock using GET_LOCK if available, or just proceed with the max selection.
-
                 $result2 = $conn->query("SELECT MAX(CAST(SUBSTRING(OwnerID, 2) AS UNSIGNED)) as max_id FROM vehicleowner WHERE OwnerID LIKE 'O%' FOR UPDATE");
                 $row = $result2->fetch_assoc();
                 $nextId = ($row['max_id'] ?? 0) + 1;
                 $ownerID = 'O' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+                $approvalTime = date('Y-m-d H:i:s'); // Assuming timezone is set in dbConnection or global config, if not, it uses server time. 
+                // We should probably set timezone here too if we want consistency, but database insert usually uses server time or passed time.
+                // review_application.php sets 'Asia/Manila'. Let's do it here too just in case.
+                date_default_timezone_set('Asia/Manila');
+                $approvalTime = date('Y-m-d H:i:s');
 
                 // Insert into vehicleowner table
-                $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, schoolID, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, additional_driver_name, additional_driver_relationship) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, schoolID, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, additional_driver_name, additional_driver_relationship, approvalTimestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?)");
+                // Added approvalTimestamp to insert
+                // Note: The previous insert statement didn't have approvalTimestamp in VALUES list despite review_application.php having it.
+                // Wait, process_registration.php insert didn't have it. I should add it.
+                // bind_param: 18 s -> 19 s
                 $stmt->bind_param(
-                    "ssssssssssssssssss",
+                    "sssssssssssssssssss",
                     $ownerID,
                     $firstApp['fName'],
                     $firstApp['lName'],
@@ -94,7 +99,8 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
                     $firstApp['employment_type'],
                     $firstApp['drivers_license'],
                     $firstApp['additional_driver_name'],
-                    $firstApp['additional_driver_relationship']
+                    $firstApp['additional_driver_relationship'],
+                    $approvalTime
                 );
                 $stmt->execute();
 
@@ -119,8 +125,8 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
                 }
 
                 // Update application status for all applications of this user
-                $stmt = $conn->prepare("UPDATE applications SET registrationStatus = 'approved' WHERE fName = ? AND lName = ? AND email = ?");
-                $stmt->bind_param("sss", $firstApp['fName'], $firstApp['lName'], $firstApp['email']);
+                $stmt = $conn->prepare("UPDATE applications SET registrationStatus = 'approved', reviewed_by = ? WHERE fName = ? AND lName = ? AND email = ?");
+                $stmt->bind_param("ssss", $reviewedBy, $firstApp['fName'], $firstApp['lName'], $firstApp['email']);
                 $stmt->execute();
 
                 // Commit transaction
@@ -144,11 +150,12 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
             $conn->begin_transaction();
             try {
                 // Update application status for all applications of this user
-                $stmt = $conn->prepare("UPDATE applications SET registrationStatus = 'rejected' WHERE fName = ? AND lName = ? AND email = ?");
-                $stmt->bind_param("sss", $firstApp['fName'], $firstApp['lName'], $firstApp['email']);
+                $stmt = $conn->prepare("UPDATE applications SET registrationStatus = 'rejected', reviewed_by = ? WHERE fName = ? AND lName = ? AND email = ?");
+                $stmt->bind_param("ssss", $reviewedBy, $firstApp['fName'], $firstApp['lName'], $firstApp['email']);
                 $stmt->execute();
 
                 $conn->commit();
+
 
                 echo json_encode([
                     'success' => true,

@@ -495,3 +495,149 @@
 .font-size-12 {
   font-size: 12px;
 }
+
+/* Violation Search Styles */
+.search-container-reports {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 24px;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 12px 16px;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  border-color: #1a73e8;
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+  outline: none;
+}
+
+.add-btn {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 2px 4px rgba(26, 115, 232, 0.2);
+}
+
+.add-btn:hover {
+  background-color: #1557b0;
+  transform: translateY(-1px);
+}
+
+.add-btn:active {
+  transform: translateY(0);
+}
+
+/* Results Table Enhancements */
+.results-table-container {
+  margin-top: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #f0f2f5;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.data-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.data-table td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table td strong {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.data-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.owner-info strong {
+  display: block;
+  color: #1e293b;
+  font-weight: 600;
+  margin-bottom: 2px;
+  font-size: 0.85rem;
+}
+
+.owner-info span {
+  display: block;
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-pending {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
+}
+
+.status-active {
+  /* Used for resolved/paid */
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #dcfce7;
+}
+
+.no-data {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-style: italic;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.hidden {
+  display: none;
+}

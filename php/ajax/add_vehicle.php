@@ -12,13 +12,18 @@ $db = new Database();
 $conn = $db->getConnection();
 
 try {
-    $plateNum = $_POST['plateNum'] ?? '';
+    $plateNum = trim($_POST['plateNum'] ?? '');
     $ownerID = $_POST['ownerID'] ?? '';
     $vehicleType = $_POST['vehicleType'] ?? '';
-    $model = $_POST['model'] ?? '';
-    $manufacturer = $_POST['manufacturer'] ?? '';
-    $color = $_POST['color'] ?? '';
-    $cubicCapacity = ($vehicleType === 'Motorcycle' && !empty($_POST['cubicCapacity'])) ? intval($_POST['cubicCapacity']) : null;
+
+    if ($vehicleType === 'Other' && !empty($_POST['otherVehicleType'])) {
+        $vehicleType = trim($_POST['otherVehicleType']);
+    }
+
+    $model = trim($_POST['model'] ?? '');
+    $manufacturer = trim($_POST['manufacturer'] ?? '');
+    $color = trim($_POST['color'] ?? '');
+    $cubicCapacity = ($vehicleType === 'Motorcycle' || (!empty($_POST['cubicCapacity']) && is_numeric($_POST['cubicCapacity']))) ? intval($_POST['cubicCapacity']) : null;
     $numOfWheels = intval($_POST['numOfWheels'] ?? 0);
     $fuelType = $_POST['fuelType'] ?? '';
 
@@ -32,7 +37,7 @@ try {
     $checkStmt->bind_param("s", $plateNum);
     $checkStmt->execute();
     if ($checkStmt->get_result()->num_rows > 0) {
-        echo json_encode(['success' => false, 'message' => 'Plate number already exists']);
+        echo json_encode(['success' => false, 'message' => 'Plate number ' . htmlspecialchars($plateNum) . ' already exists in the system.']);
         exit;
     }
 

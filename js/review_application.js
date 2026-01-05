@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function () {
         img.style.cursor = 'pointer';
         img.title = 'Click to view full size';
     });
+
+    // Bind Decline Button
+    const declineBtn = document.querySelector('.btn-decline');
+    if (declineBtn) {
+        declineBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showRejectModal();
+        });
+    }
 });
 
 function showRejectModal() {

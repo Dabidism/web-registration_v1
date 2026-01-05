@@ -1,10 +1,8 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit;
-}
+// Check authentication and single session
+require_once 'auth_check.php';
 
 $pageTitle = "Entry/Exit Logs";
 $currentPage = "entry-exit";

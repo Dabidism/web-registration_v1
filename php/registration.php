@@ -91,7 +91,7 @@ require_once 'dbConnection.php';
               <option value="" disabled selected>Select College</option>
               <option value="CAS">(CAS) College of Arts and Sciences</option>
               <option value="CEA">(CEA) College of Engineering and Architecture</option>
-              <option value="CCI">(CCI) College of Information and Informatics</option>
+              <option value="CCI">(CCI) College of Computing in Informatics</option>
               <option value="COE">(COE) College of Education</option>
               <option value="CIT">(CIT) College of Industrial Technology</option>
             </select>
@@ -193,14 +193,16 @@ require_once 'dbConnection.php';
           </div>
 
           <div class="grid-3">
-            <div>
+            <div class="vehicle-type-group">
               <label>Vehicle Type</label>
-              <select name="vehicleType[]" required>
+              <select name="vehicleType[]" class="vehicle-type-select" required>
                 <option value="" disabled selected>Select Vehicle Type</option>
                 <option value="Car">Car</option>
                 <option value="Motorcycle">Motorcycle</option>
                 <option value="Other">Other</option>
               </select>
+              <input type="text" name="otherVehicleType[]" class="other-vehicle-type hidden"
+                placeholder="Specify Vehicle Type" disabled />
             </div>
             <div>
               <label>Manufacturer</label>
@@ -224,11 +226,14 @@ require_once 'dbConnection.php';
             </div>
             <div>
               <label>Number of Wheels</label>
-              <select name="numWheels[]" required disabled>
+              <select name="numWheels[]" class="num-wheels-select" required disabled>
                 <option value="" disabled selected>Select Number of Wheels</option>
                 <option value="2">2 Wheels</option>
+                <option value="3">3 Wheels</option>
                 <option value="4">4 Wheels</option>
               </select>
+              <input type="number" name="numWheels[]" class="num-wheels-input hidden" placeholder="Enter # of wheels"
+                disabled />
             </div>
           </div>
 
@@ -271,8 +276,10 @@ require_once 'dbConnection.php';
       <button type="button" class="add-btn" id="addVehicleBtn">+ Add More Vehicle</button>
 
       <div class="agreement">
-        <input type="checkbox" id="termsCheckbox" required /> I have read and agree to the
+        <input type="hidden" id="termsCheckbox" name="termsAccepted" required />
+        <span id="termsStatusText">Please read and agree to the</span>
         <a href="#" id="termsLink">terms and conditions</a>
+        <span id="termsAcceptedIcon" class="check-icon hidden">✓ Accepted</span>
         <span class="required-asterisk">*</span>
       </div>
       <div class="button-row">

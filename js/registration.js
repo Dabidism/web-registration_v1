@@ -244,13 +244,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Check if terms are agreed
             const termsCheckbox = document.getElementById('termsCheckbox');
-            if (termsCheckbox && !termsCheckbox.checked) {
-                alert('Please read and agree to the terms and conditions');
-                termsCheckbox.focus();
-                termsCheckbox.style.outline = '2px solid red';
-                setTimeout(() => {
-                    termsCheckbox.style.outline = '';
-                }, 3000);
+            if (termsCheckbox && (!termsCheckbox.value || termsCheckbox.value !== "1")) {
+                alert('Please read and agree to the terms and conditions by clicking the link.');
                 return;
             }
 
@@ -334,31 +329,20 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.updateCheckboxStyle = function (checkbox) {
-        const checkmark = checkbox.nextElementSibling; // Span with checkmark
+        // This function is for the modal checkbox
         const agreeBtn = document.getElementById('agreeBtn');
 
-        // Styles for custom checkbox
         if (checkbox.checked) {
-            checkbox.style.background = '#2563eb';
-            checkbox.style.borderColor = '#2563eb';
-            if (checkmark) checkmark.style.opacity = '1';
-
+            checkbox.classList.add('checked'); // Visual style if needed
             if (agreeBtn) {
                 agreeBtn.disabled = false;
                 agreeBtn.classList.add('active');
-                agreeBtn.style.background = '#1d4ed8'; // Explicit style override if needed or rely on class
-                agreeBtn.style.cursor = 'pointer';
             }
         } else {
-            checkbox.style.background = 'white';
-            checkbox.style.borderColor = '#d1d5db';
-            if (checkmark) checkmark.style.opacity = '0';
-
+            checkbox.classList.remove('checked');
             if (agreeBtn) {
                 agreeBtn.disabled = true;
                 agreeBtn.classList.remove('active');
-                agreeBtn.style.background = '#d1d5db';
-                agreeBtn.style.cursor = 'not-allowed';
             }
         }
     };
@@ -366,9 +350,27 @@ document.addEventListener('DOMContentLoaded', function () {
     window.agreeToTerms = function () {
         const modalCheckbox = document.getElementById('modalTermsCheckbox');
         const mainCheckbox = document.getElementById('termsCheckbox');
+        const termsStatusText = document.getElementById('termsStatusText');
+        const termsAcceptedIcon = document.getElementById('termsAcceptedIcon');
+        const termsLink = document.getElementById('termsLink');
 
         if (modalCheckbox.checked) {
-            if (mainCheckbox) mainCheckbox.checked = true;
+            if (mainCheckbox) {
+                mainCheckbox.value = "1"; // Set hidden input value
+                // Since it's hidden, we don't 'check' it visually, but we update the UI
+            }
+
+            if (termsStatusText) termsStatusText.style.display = 'none';
+            if (termsLink) termsLink.style.display = 'none'; // Optional: hide link after acceptance? Or keep it?
+            // User said "get rid of the check box outside the underlined words", implying the text might stay?
+            // "so that they need to read the terms to check the checkbox" -> checking happens in modal.
+            // Let's hide the "Please read" and show "Accepted"
+
+            if (termsAcceptedIcon) {
+                termsAcceptedIcon.classList.remove('hidden');
+                termsAcceptedIcon.style.display = 'inline-flex';
+            }
+
             closeTermsModal();
         }
     };
@@ -382,29 +384,75 @@ document.addEventListener('DOMContentLoaded', function () {
     // === Vehicle Type Change Logic ===
     function handleVehicleTypeChange(selectElement) {
         const vehicleSection = selectElement.closest('.vehicle-section');
-        const numWheelsSelect = vehicleSection.querySelector('select[name="numWheels[]"]');
+        const numWheelsSelect = vehicleSection.querySelector('.num-wheels-select');
+        const numWheelsInput = vehicleSection.querySelector('.num-wheels-input');
         const cubicCapacityInput = vehicleSection.querySelector('input[name="cubicCapacity[]"]');
+        const otherTypeInput = vehicleSection.querySelector('input[name="otherVehicleType[]"]');
 
         if (selectElement.value === 'Car') {
+            // Show Select, Hide Input
+            numWheelsSelect.classList.remove('hidden');
+            numWheelsSelect.disabled = true; // Still disabled as it is auto-set
             numWheelsSelect.value = '4';
-            numWheelsSelect.disabled = true;
+
+            numWheelsInput.classList.add('hidden');
+            numWheelsInput.disabled = true;
+            numWheelsInput.value = '';
+
             cubicCapacityInput.value = '';
             cubicCapacityInput.disabled = true;
             cubicCapacityInput.required = false;
             cubicCapacityInput.placeholder = "Not applicable";
+
+            if (otherTypeInput) {
+                otherTypeInput.classList.add('hidden');
+                otherTypeInput.disabled = true;
+                otherTypeInput.required = false;
+                otherTypeInput.value = '';
+            }
         } else if (selectElement.value === 'Motorcycle') {
-            numWheelsSelect.value = '2';
+            // Show Select, Hide Input
+            numWheelsSelect.classList.remove('hidden');
             numWheelsSelect.disabled = true;
+            numWheelsSelect.value = '2';
+
+            numWheelsInput.classList.add('hidden');
+            numWheelsInput.disabled = true;
+            numWheelsInput.value = '';
+
             cubicCapacityInput.disabled = false;
             cubicCapacityInput.required = true;
             cubicCapacityInput.placeholder = "Enter cubic capacity (cc)";
+
+            if (otherTypeInput) {
+                otherTypeInput.classList.add('hidden');
+                otherTypeInput.disabled = true;
+                otherTypeInput.required = false;
+                otherTypeInput.value = '';
+            }
         } else if (selectElement.value === 'Other') {
-            numWheelsSelect.disabled = false;
+            // Hide Select, Show Input
+            numWheelsSelect.classList.add('hidden');
+            numWheelsSelect.disabled = true;
             numWheelsSelect.value = '';
+
+            numWheelsInput.classList.remove('hidden');
+            numWheelsInput.disabled = false;
+            numWheelsInput.required = true;
+            numWheelsInput.value = '';
+
+            // Enable cubic capacity (optional)
             cubicCapacityInput.disabled = false;
-            cubicCapacityInput.required = false; // Optional for other? Or required?
-            // The orphaned code had removeAttribute('required'). Let's assume it's optional or situational.
+            cubicCapacityInput.required = false;
             cubicCapacityInput.placeholder = "Enter cubic capacity (if applicable)";
+
+            // Show Other Type Input
+            if (otherTypeInput) {
+                otherTypeInput.classList.remove('hidden');
+                otherTypeInput.disabled = false;
+                otherTypeInput.required = true;
+                otherTypeInput.focus();
+            }
         }
     }
 
@@ -415,16 +463,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Observer or bind on add (already handled by bind? No, when adding new section, need to bind events)
-    // In addVehicleBtn click listener (lines 128+), we clone the node.
-    // Deep clone includes event listeners? No.
-    // So we need to re-bind in add logic.
-
-    // Let's update the addVehicleBtn logic to bind the change event on the new select.
-    // Since I can't easily edit the middle of the file with replace_file_content without context, 
-    // I will assume the 'change' event propagates or I can delegate it.
-    // Delegation is better.
-
+    // Delegate change event for dynamically added sections
     document.getElementById('vehicle-sections').addEventListener('change', function (e) {
         if (e.target.name === 'vehicleType[]') {
             handleVehicleTypeChange(e.target);

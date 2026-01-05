@@ -184,4 +184,99 @@ document.addEventListener('DOMContentLoaded', function () {
             trafficChart.update();
         }
     }
+
+    // Violation Search Logic
+    const searchViolationBtn = document.getElementById('searchViolationBtn');
+    const searchInput = document.getElementById('violationSearchInput');
+    const resultsTable = document.getElementById('violationResults');
+    const resultsBody = document.getElementById('violationResultsBody');
+    const noResultsMsg = document.getElementById('noResultsMsg');
+    if (searchViolationBtn && searchInput) {
+        searchViolationBtn.addEventListener('click', function () {
+            performSearch();
+        });
+
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+        if (!query) {
+            alert("Please enter a search term");
+            return;
+        }
+
+        // Show loading state if desired (optional)
+
+        fetch('ajax/search_violations.php?query=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayResults(data.data);
+                } else {
+                    console.error("Search failed:", data.message);
+                    alert("Search failed: " + data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error:", err);
+                alert("An error occurred during search.");
+            });
+    }
+
+    function displayResults(data) {
+        resultsBody.innerHTML = '';
+
+        if (data.length === 0) {
+            resultsTable.classList.add('hidden');
+            noResultsMsg.classList.remove('hidden');
+            return;
+        }
+
+        noResultsMsg.classList.add('hidden');
+        resultsTable.classList.remove('hidden');
+
+        data.forEach(item => {
+            const row = document.createElement('tr');
+
+            // Handle null/empty violation data
+            const violationType = item.violationType || '<span style="color:#94a3b8; font-style:italic;">No Record</span>';
+            const status = item.status ? item.status.toUpperCase() : 'CLEAN';
+
+            // Status styling
+            let statusClass = 'status-badge';
+            if (status === 'RESOLVED' || status === 'PAID') {
+                statusClass += ' status-active';
+            } else if (status === 'CLEAN') {
+                statusClass += ' status-active'; // Reuse active green style for clean
+                // Or create a new class .status-clean if you want different color
+            } else {
+                statusClass += ' status-pending';
+            }
+
+            row.innerHTML = `
+                <td><strong>${item.plateNum}</strong></td>
+                <td>
+                    <div class="owner-info">
+                        <strong>${item.fName} ${item.lName}</strong>
+                    </div>
+                </td>
+                <td>
+                    <div class="owner-info">
+                        <span>${item.email}</span>
+                        <span>${item.contact_num}</span>
+                    </div>
+                </td>
+                <td>${item.color || ''} ${item.manufacturer || ''} ${item.model} (${item.vehicleType})</td>
+                <td>${violationType}</td>
+                <td><span class="${statusClass}">${status}</span></td>
+                <td>${item.formatted_date}</td>
+            `;
+            resultsBody.appendChild(row);
+        });
+    }
 });

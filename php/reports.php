@@ -1,10 +1,8 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit;
-}
+// Check authentication and single session
+require_once 'auth_check.php';
 
 $pageTitle = "Reports";
 $currentPage = "reports";
@@ -108,6 +106,33 @@ include_once '../includes/header.php';
     </div>
   </div>
   <div class="grid">
+    <!-- Violation Search Section -->
+    <div class="card" id="violation-search">
+      <h3>Search Violations</h3>
+      <div class="search-container-reports">
+        <input type="text" id="violationSearchInput" class="search-input"
+          placeholder="Enter Plate Number, Owner Name, or Vehicle Info (Model/Type)">
+        <button id="searchViolationBtn" class="add-btn">Search</button>
+      </div>
+      <div id="violationResults" class="results-table-container hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Plate Number</th>
+              <th>Owner</th>
+              <th>Contact Details</th>
+              <th>Vehicle</th>
+              <th>Violation</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="violationResultsBody">
+          </tbody>
+        </table>
+      </div>
+      <div id="noResultsMsg" class="no-data hidden">No violations found matching your criteria.</div>
+    </div>
 
     <div class="card" id="gate-traffic">
       <div class="flex-space-between-center">

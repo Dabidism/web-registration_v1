@@ -1,4 +1,6 @@
 <?php
+// Check authentication and single session
+require_once 'auth_check.php';
 // Set page title and current page for navigation highlighting
 $pageTitle = "RFID and Car Pass Management";
 $currentPage = "rfid_management";

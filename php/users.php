@@ -1,11 +1,8 @@
 <?php
 session_start();
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-  header("Location: login.php");
-  exit;
-}
+// Check authentication and single session
+require_once 'auth_check.php';
 
 // Set page title and current page for navigation highlighting
 $pageTitle = "Users";
@@ -316,12 +313,19 @@ include_once '../includes/header.php';
       .then(response => response.json())
       .then(data => {
         if (data.success) {
+          // Format dates
+          const formatDate = (dateStr) => {
+            if (!dateStr) return 'Never';
+            const date = new Date(dateStr);
+            return date.toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          };
+
           document.getElementById('userDetails').innerHTML = `
           <p><strong>User ID:</strong> ${data.user.userID}</p>
           <p><strong>Username:</strong> ${data.user.username}</p>
           <p><strong>Role:</strong> ${data.user.role}</p>
-          <p><strong>Created:</strong> ${data.user.created_at || 'N/A'}</p>
-          <p><strong>Last Login:</strong> ${data.user.last_login || 'N/A'}</p>
+          <p><strong>Date Created:</strong> ${formatDate(data.user.created_at)}</p>
+          <p><strong>Last Login:</strong> ${formatDate(data.user.last_login)}</p>
         `;
           document.getElementById('viewUserModal').style.display = 'block';
         } else {
