@@ -32,11 +32,19 @@ if ($result) {
   $stats['total_vehicles'] = $result->fetch_assoc()['count'];
 }
 
-// Get parking allocation data
+// Get parking allocation data - ensure it exists
 $parkingResult = $conn->query("SELECT * FROM parkingstatus ORDER BY id ASC LIMIT 1");
 $parkingData = $parkingResult ? $parkingResult->fetch_assoc() : null;
 
-// Get campus occupancy by role from historical_log and vehicle owner data
+// If no parking data exists, create default record
+if (!$parkingData) {
+  $conn->query("INSERT INTO parkingstatus (totalCapacity, allocatedStudents, allocatedFaculty, allocatedStaff, allocatedGuests) 
+                VALUES (200, 100, 50, 30, 20)");
+  $parkingResult = $conn->query("SELECT * FROM parkingstatus ORDER BY id ASC LIMIT 1");
+  $parkingData = $parkingResult->fetch_assoc();
+}
+
+// Get campus occupancy by role from historical_log (optimized with indexes)
 $occupancyByRole = [
   'students' => 0,
   'faculty' => 0,
@@ -44,7 +52,7 @@ $occupancyByRole = [
   'guests' => 0
 ];
 
-// Get current occupancy by role
+// Calculate current occupancy (read-only, no database updates)
 $result = $conn->query("
     SELECT 
         CASE 
@@ -58,7 +66,9 @@ $result = $conn->query("
     FROM historical_log h
     JOIN vehicle v ON h.plateNum = v.plateNum
     LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
-    WHERE h.status = 'entered' AND h.exitTime IS NULL
+    WHERE h.status = 'entered' 
+        AND h.exitTime IS NULL
+        AND DATE(h.entryTime) = CURDATE()
     GROUP BY role_category
 ");
 
@@ -68,19 +78,9 @@ if ($result) {
   }
 }
 
-// Update parking status with current occupancy
-if ($parkingData) {
-  $configId = $parkingData['id'];
-  $conn->query("UPDATE parkingstatus SET 
-        currentOccupiedStudents = {$occupancyByRole['students']},
-        currentOccupiedFaculty = {$occupancyByRole['faculty']},
-        currentOccupiedStaff = {$occupancyByRole['staff']},
-        currentOccupiedGuests = {$occupancyByRole['guests']}
-        WHERE id = $configId");
-}
-
 $stats['active_vehicles'] = array_sum($occupancyByRole);
-$stats['total_capacity'] = $parkingData ? $parkingData['totalCapacity'] : 300;
+// Always use database value - no static fallback
+$stats['total_capacity'] = $parkingData['totalCapacity'];
 $stats['occupancy_by_role'] = $occupancyByRole;
 
 // Get pending vehicles (vehicles without RFID tags)
@@ -113,22 +113,23 @@ if ($result) {
   }
 }
 
-// Get today's entries count from historical_log
+// Get today's entries count from entryexitlog and visitorlog
 $today = date('Y-m-d');
-$result = $conn->query("SELECT COUNT(*) as count FROM historical_log WHERE DATE(entryTime) = '$today' AND status = 'entered'");
-if ($result) {
-  $stats['todays_entries'] = $result->fetch_assoc()['count'];
-} else {
-  $stats['todays_entries'] = 0;
-}
+$result1 = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE DATE(entryTime) = '$today'");
+$result2 = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$today'");
+$count1 = $result1 ? $result1->fetch_assoc()['count'] : 0;
+$count2 = $result2 ? $result2->fetch_assoc()['count'] : 0;
+$stats['todays_entries'] = $count1 + $count2;
 
-// Get daily entries for the past week from historical_log
+// Get daily entries for the past week from entryexitlog and visitorlog
 $dailyEntries = [];
 for ($i = 6; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
-  $result = $conn->query("SELECT COUNT(*) as count FROM historical_log WHERE DATE(entryTime) = '$date' AND status = 'entered'");
-  $count = $result ? $result->fetch_assoc()['count'] : 0;
-  $dailyEntries[] = ['date' => $date, 'count' => $count];
+  $result1 = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE DATE(entryTime) = '$date'");
+  $result2 = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$date'");
+  $count1 = $result1 ? $result1->fetch_assoc()['count'] : 0;
+  $count2 = $result2 ? $result2->fetch_assoc()['count'] : 0;
+  $dailyEntries[] = ['date' => $date, 'count' => $count1 + $count2];
 }
 
 // Get traffic data for different periods (registered vehicles only)
@@ -138,7 +139,7 @@ for ($hour = 6; $hour <= 20; $hour++) {
   $hourFormatted = sprintf('%02d:00:00', $hour);
   $fullHour = $today . ' ' . $hourFormatted;
   $hourLabel = sprintf('%02d:00', $hour);
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM historical_log h JOIN vehicle v ON h.plateNum = v.plateNum WHERE DATE_FORMAT(h.entryTime, '%Y-%m-%d %H:00:00') = '$fullHour' AND h.status = 'entered' AND v.OwnerID IS NOT NULL");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog e JOIN vehicle v ON e.plateNum = v.plateNum WHERE DATE_FORMAT(e.entryTime, '%Y-%m-%d %H:00:00') = '$fullHour' AND v.OwnerID IS NOT NULL");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $dayTraffic[] = ['label' => $hourLabel, 'entries' => $entries];
 }
@@ -147,7 +148,7 @@ $weekTraffic = [];
 for ($i = 6; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $dayLabel = date('D', strtotime("-$i days"));
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM historical_log h JOIN vehicle v ON h.plateNum = v.plateNum WHERE DATE(h.entryTime) = '$date' AND h.status = 'entered' AND v.OwnerID IS NOT NULL");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog e JOIN vehicle v ON e.plateNum = v.plateNum WHERE DATE(e.entryTime) = '$date' AND v.OwnerID IS NOT NULL");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $weekTraffic[] = ['label' => $dayLabel, 'entries' => $entries];
 }
@@ -156,7 +157,7 @@ $monthTraffic = [];
 for ($i = 29; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $dayLabel = date('M j', strtotime("-$i days"));
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM historical_log h JOIN vehicle v ON h.plateNum = v.plateNum WHERE DATE(h.entryTime) = '$date' AND h.status = 'entered' AND v.OwnerID IS NOT NULL");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM entryexitlog e JOIN vehicle v ON e.plateNum = v.plateNum WHERE DATE(e.entryTime) = '$date' AND v.OwnerID IS NOT NULL");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $monthTraffic[] = ['label' => $dayLabel, 'entries' => $entries];
 }
@@ -168,7 +169,7 @@ for ($hour = 6; $hour <= 20; $hour++) {
   $hourFormatted = sprintf('%02d:00:00', $hour);
   $fullHour = $today . ' ' . $hourFormatted;
   $hourLabel = sprintf('%02d:00', $hour);
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM historical_log h JOIN vehicle v ON h.plateNum = v.plateNum WHERE DATE_FORMAT(h.entryTime, '%Y-%m-%d %H:00:00') = '$fullHour' AND h.status = 'entered' AND v.visitorID IS NOT NULL");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE_FORMAT(entryTime, '%Y-%m-%d %H:00:00') = '$fullHour'");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $dayVisitorTraffic[] = ['label' => $hourLabel, 'entries' => $entries];
 }
@@ -177,7 +178,7 @@ $weekVisitorTraffic = [];
 for ($i = 6; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $dayLabel = date('D', strtotime("-$i days"));
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM historical_log h JOIN vehicle v ON h.plateNum = v.plateNum WHERE DATE(h.entryTime) = '$date' AND h.status = 'entered' AND v.visitorID IS NOT NULL");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$date'");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $weekVisitorTraffic[] = ['label' => $dayLabel, 'entries' => $entries];
 }
@@ -186,7 +187,7 @@ $monthVisitorTraffic = [];
 for ($i = 29; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $dayLabel = date('M j', strtotime("-$i days"));
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM historical_log h JOIN vehicle v ON h.plateNum = v.plateNum WHERE DATE(h.entryTime) = '$date' AND h.status = 'entered' AND v.visitorID IS NOT NULL");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$date'");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $monthVisitorTraffic[] = ['label' => $dayLabel, 'entries' => $entries];
 }

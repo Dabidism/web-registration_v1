@@ -22,8 +22,8 @@ $pendingQuery = "SELECT v.*, vo.fName, vo.lName, vo.email
                 ORDER BY vo.lName, vo.fName";
 $pendingResult = $conn->query($pendingQuery);
 
-// Get registered vehicles (with RFID tags)
-$registeredQuery = "SELECT v.*, vo.fName, vo.lName, vo.email, r.issuedAt 
+// Get registered vehicles (with RFID tags) - simplified query for new table structure
+$registeredQuery = "SELECT v.*, vo.fName, vo.lName, vo.email, r.status as rfidStatus, r.issuedBy 
                    FROM vehicle v 
                    JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
                    LEFT JOIN rfidtag r ON v.stickerID = r.stickerID
@@ -158,18 +158,7 @@ include_once '../includes/header.php';
         </thead>
         <tbody>
           <?php if ($registeredResult && $registeredResult->num_rows > 0): ?>
-            <?php while ($row = $registeredResult->fetch_assoc()):
-              // Get vehicle count for this owner
-              $ownerVehicleQuery = "SELECT COUNT(*) as count FROM vehicle WHERE OwnerID = ?";
-              $stmt = $conn->prepare($ownerVehicleQuery);
-              $stmt->bind_param("s", $row['OwnerID']);
-              $stmt->execute();
-              $ownerVehicleResult = $stmt->get_result();
-              $vehicleCount = $ownerVehicleResult->fetch_assoc()['count'];
-
-              // Format date
-              $issuedDate = !empty($row['issuedAt']) ? date('M d, Y', strtotime($row['issuedAt'])) : 'N/A';
-              ?>
+            <?php while ($row = $registeredResult->fetch_assoc()): ?>
               <tr>
                 <td><span class="sticker-id"><?php echo htmlspecialchars($row['stickerID'] ?? 'N/A'); ?></span></td>
                 <td>
@@ -220,8 +209,8 @@ include_once '../includes/header.php';
 <div id="addRfidModal" class="popup-overlay">
   <div class="popup-content">
     <h3>Add New RFID Tag</h3>
-    <p>Enter the RFID tag details to register it in the system.</p>
-    <input type="text" id="newRfidCode" placeholder="Enter RFID Code" />
+    <p>Scan the RFID tag and enter the code below. The system will automatically assign an ID.</p>
+    <input type="text" id="newRfidCode" placeholder="Enter scanned RFID tag code (e.g., E0F8FEFE009806...)" />
     <div class="popup-buttons">
       <button class="btn-cancel">Cancel</button>
       <button class="btn-add-confirm">Add RFID Tag</button>

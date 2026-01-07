@@ -43,7 +43,23 @@ try {
 
     // Handle RFID if provided
     if (!empty($stickerID)) {
-        // Check if sticker ID already exists
+        // Check if RFID tag is available in rfidtag table
+        $checkRfidQuery = "SELECT status FROM rfidtag WHERE stickerID = ?";
+        $checkRfidStmt = $conn->prepare($checkRfidQuery);
+        $checkRfidStmt->bind_param("s", $stickerID);
+        $checkRfidStmt->execute();
+        $rfidResult = $checkRfidStmt->get_result();
+
+        if ($rfidResult->num_rows === 0) {
+            throw new Exception("Invalid RFID tag ID");
+        }
+
+        $rfidData = $rfidResult->fetch_assoc();
+        if ($rfidData['status'] === 'unavailable') {
+            throw new Exception("RFID tag $stickerID is already assigned");
+        }
+
+        // Check if sticker ID already assigned to another vehicle
         $checkQuery = "SELECT plateNum FROM vehicle WHERE stickerID = ?";
         $checkStmt = $conn->prepare($checkQuery);
         $checkStmt->bind_param("s", $stickerID);
@@ -51,26 +67,45 @@ try {
         $checkResult = $checkStmt->get_result();
 
         if ($checkResult->num_rows > 0) {
-            echo json_encode(['success' => false, 'message' => 'This sticker ID is already assigned to another vehicle']);
-            exit;
+            throw new Exception('This sticker ID is already assigned to another vehicle');
         }
-
-        // Update RFID tag status to active
-        $updateRfidQuery = "UPDATE rfidtag SET status = 'active', issuedAt = NOW() WHERE stickerID = ?";
-        $updateRfidStmt = $conn->prepare($updateRfidQuery);
-        $updateRfidStmt->bind_param("s", $stickerID);
-        $updateRfidStmt->execute();
 
         // Update vehicle with sticker ID
         $updateQuery = "UPDATE vehicle SET stickerID = ? WHERE plateNum = ?";
         $updateStmt = $conn->prepare($updateQuery);
         $updateStmt->bind_param("ss", $stickerID, $plateNum);
         $updateStmt->execute();
+
+        // Update rfidtag status to unavailable
+        $username = $_SESSION['username'] ?? 'admin';
+        $updateRfidQuery = "UPDATE rfidtag SET status = 'unavailable', issuedBy = ? WHERE stickerID = ?";
+        $updateRfidStmt = $conn->prepare($updateRfidQuery);
+        $updateRfidStmt->bind_param("ss", $username, $stickerID);
+
+        if (!$updateRfidStmt->execute()) {
+            throw new Exception("Failed to update RFID tag status");
+        }
     }
 
     // Handle Car Pass if provided
     if (!empty($carpassId)) {
-        // Check if car pass ID already exists
+        // Check if car pass is available in vehiclepass table
+        $checkPassQuery = "SELECT status FROM vehiclepass WHERE passID = ?";
+        $checkPassStmt = $conn->prepare($checkPassQuery);
+        $checkPassStmt->bind_param("s", $carpassId);
+        $checkPassStmt->execute();
+        $passResult = $checkPassStmt->get_result();
+
+        if ($passResult->num_rows === 0) {
+            throw new Exception("Invalid car pass ID");
+        }
+
+        $passData = $passResult->fetch_assoc();
+        if ($passData['status'] === 'unavailable') {
+            throw new Exception("Car pass $carpassId is already assigned");
+        }
+
+        // Check if car pass ID already assigned to another vehicle
         $checkQuery = "SELECT plateNum FROM vehicle WHERE carpassid = ?";
         $checkStmt = $conn->prepare($checkQuery);
         $checkStmt->bind_param("s", $carpassId);
@@ -78,8 +113,7 @@ try {
         $checkResult = $checkStmt->get_result();
 
         if ($checkResult->num_rows > 0) {
-            echo json_encode(['success' => false, 'message' => 'This car pass ID is already assigned to another vehicle']);
-            exit;
+            throw new Exception("Car pass ID is already assigned to another vehicle");
         }
 
         // Update vehicle with car pass ID
@@ -87,6 +121,16 @@ try {
         $updateStmt = $conn->prepare($updateQuery);
         $updateStmt->bind_param("ss", $carpassId, $plateNum);
         $updateStmt->execute();
+
+        // Update vehiclepass status to unavailable
+        $username = $_SESSION['username'] ?? 'admin';
+        $updatePassQuery = "UPDATE vehiclepass SET status = 'unavailable', issuedBy = ? WHERE passID = ?";
+        $updatePassStmt = $conn->prepare($updatePassQuery);
+        $updatePassStmt->bind_param("ss", $username, $carpassId);
+
+        if (!$updatePassStmt->execute()) {
+            throw new Exception("Failed to update car pass status");
+        }
     }
 
     $conn->commit();

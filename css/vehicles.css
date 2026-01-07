@@ -94,7 +94,7 @@
   border-collapse: collapse;
   border-radius: 8px;
   overflow: hidden;
-  table-layout: fixed;
+  /* table-layout: fixed; */
 }
 
 .data-table th,

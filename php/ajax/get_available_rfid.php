@@ -1,27 +1,30 @@
 <?php
 header('Content-Type: application/json');
+
 require_once '../dbConnection.php';
 
-$db = new Database();
-$conn = $db->getConnection();
+try {
+    $db = new Database();
+    $conn = $db->getConnection();
 
-// Get available RFID tags (not assigned to any vehicle)
-$query = "SELECT r.stickerID, r.rfidCode 
-          FROM rfidtag r 
-          LEFT JOIN vehicle v ON r.stickerID = v.stickerID 
-          WHERE v.stickerID IS NULL AND r.status = 'inactive'
-          ORDER BY r.stickerID";
+    // Get all available RFID tags from rfidtag table with full details
+    $query = "SELECT stickerID, tagCode FROM rfidtag WHERE status = 'available' ORDER BY stickerID";
+    $result = $conn->query($query);
 
-$result = $conn->query($query);
-$rfidTags = [];
-
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $rfidTags[] = $row;
+    $availableRfid = [];
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $availableRfid[] = [
+                'stickerID' => $row['stickerID'],
+                'tagCode' => $row['tagCode'] ?? 'Not scanned'
+            ];
+        }
     }
+
+    echo json_encode(['success' => true, 'data' => $availableRfid]);
+    $db->closeConnection();
+
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
-
-echo json_encode(['success' => true, 'data' => $rfidTags]);
-
-$db->closeConnection();
 ?>

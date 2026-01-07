@@ -12,11 +12,19 @@ require_once '../dbConnection.php';
 $db = new Database();
 $conn = $db->getConnection();
 
-// Get parking allocation data
+// Get parking allocation data - ensure it exists
 $parkingResult = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
 $parkingData = $parkingResult ? $parkingResult->fetch_assoc() : null;
 
-// Get campus occupancy by role from historical_log and vehicle owner data
+// If no parking data exists, create default record
+if (!$parkingData) {
+    $conn->query("INSERT INTO parkingstatus (totalCapacity, allocatedStudents, allocatedFaculty, allocatedStaff, allocatedGuests) 
+                  VALUES (200, 100, 50, 30, 20)");
+    $parkingResult = $conn->query("SELECT * FROM parkingstatus WHERE id = 1");
+    $parkingData = $parkingResult->fetch_assoc();
+}
+
+// Get campus occupancy by role from historical_log (optimized with indexes)
 $occupancyByRole = [
     'students' => 0,
     'faculty' => 0,
@@ -24,7 +32,7 @@ $occupancyByRole = [
     'guests' => 0
 ];
 
-// Get current occupancy by role
+// Calculate current occupancy (read-only, no database updates)
 $result = $conn->query("
     SELECT 
         CASE 
@@ -38,7 +46,9 @@ $result = $conn->query("
     FROM historical_log h
     JOIN vehicle v ON h.plateNum = v.plateNum
     LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
-    WHERE h.status = 'entered' AND h.exitTime IS NULL
+    WHERE h.status = 'entered' 
+        AND h.exitTime IS NULL
+        AND DATE(h.entryTime) = CURDATE()
     GROUP BY role_category
 ");
 
@@ -48,18 +58,9 @@ if ($result) {
     }
 }
 
-// Update parking status with current occupancy
-if ($parkingData) {
-    $conn->query("UPDATE parkingstatus SET 
-        currentOccupiedStudents = {$occupancyByRole['students']},
-        currentOccupiedFaculty = {$occupancyByRole['faculty']},
-        currentOccupiedStaff = {$occupancyByRole['staff']},
-        currentOccupiedGuests = {$occupancyByRole['guests']}
-        WHERE id = 1");
-}
-
 $totalOccupied = array_sum($occupancyByRole);
-$totalCapacity = $parkingData ? $parkingData['totalCapacity'] : 300;
+// Always use database value - no static fallback
+$totalCapacity = $parkingData['totalCapacity'];
 
 $response = [
     'total_occupied' => $totalOccupied,

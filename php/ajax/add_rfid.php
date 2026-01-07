@@ -1,61 +1,72 @@
 <?php
+// Add new RFID tag to inventory
 session_start();
 header('Content-Type: application/json');
-require_once '../dbConnection.php';
 
-// Check if user is admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'SSEDMMO Admin') {
-    echo json_encode(['success' => false, 'message' => 'Access denied. Admin privileges required.']);
-    exit;
-}
-
+// Check if request is POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Invalid request method']);
     exit;
 }
 
-$rfidCode = $_POST['rfidCode'] ?? '';
-
-if (empty($rfidCode)) {
-    echo json_encode(['success' => false, 'message' => 'RFID Code is required']);
+// Check required parameters - now expecting tagCode instead of stickerID
+if (!isset($_POST['tagCode'])) {
+    echo json_encode(['success' => false, 'message' => 'Missing RFID tag code']);
     exit;
 }
 
+$tagCode = trim($_POST['tagCode']);
+
+// Validate tagCode is not empty
+if (empty($tagCode)) {
+    echo json_encode(['success' => false, 'message' => 'RFID tag code cannot be empty']);
+    exit;
+}
+
+// Include database connection
+require_once '../dbConnection.php';
+
+// Create database instance
 $db = new Database();
 $conn = $db->getConnection();
 
-// Check if RFID code already exists
-$checkStmt = $conn->prepare("SELECT stickerID FROM rfidtag WHERE rfidCode = ?");
-$checkStmt->bind_param("s", $rfidCode);
-$checkStmt->execute();
-$result = $checkStmt->get_result();
+try {
+    // Check if tagCode already exists
+    $checkCodeQuery = "SELECT stickerID FROM rfidtag WHERE tagCode = ?";
+    $checkCodeStmt = $conn->prepare($checkCodeQuery);
+    $checkCodeStmt->bind_param("s", $tagCode);
+    $checkCodeStmt->execute();
+    $checkCodeResult = $checkCodeStmt->get_result();
 
-if ($result->num_rows > 0) {
-    echo json_encode(['success' => false, 'message' => 'RFID code already taken']);
-    $db->closeConnection();
-    exit;
-}
-
-// Generate new stickerID
-$result = $conn->query("SELECT MAX(CAST(SUBSTRING(stickerID, 2) AS UNSIGNED)) as max_id FROM rfidtag WHERE stickerID LIKE 'S%'");
-$row = $result->fetch_assoc();
-$nextId = ($row['max_id'] ?? 0) + 1;
-$stickerID = 'S' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
-
-// Insert new RFID tag
-$stmt = $conn->prepare("INSERT INTO rfidtag (stickerID, rfidCode, issuedAt, status, expirationDate) VALUES (?, ?, NOW(), 'inactive', DATE_ADD(NOW(), INTERVAL 1 YEAR))");
-$stmt->bind_param("ss", $stickerID, $rfidCode);
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'RFID tag added successfully']);
-} else {
-    // Check if error is due to duplicate entry
-    if (strpos($stmt->error, 'Duplicate entry') !== false) {
-        echo json_encode(['success' => false, 'message' => 'RFID tag already exists in the system']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to add RFID tag: ' . $stmt->error]);
+    if ($checkCodeResult->num_rows > 0) {
+        echo json_encode(['success' => false, 'message' => 'This tag code is already registered']);
+        exit;
     }
-}
 
-$db->closeConnection();
+    // Auto-generate next stickerID
+    $result = $conn->query("SELECT MAX(CAST(SUBSTRING(stickerID, 5) AS UNSIGNED)) as max_id FROM rfidtag WHERE stickerID LIKE 'RFID%'");
+    $row = $result->fetch_assoc();
+    $nextId = ($row['max_id'] ?? 0) + 1;
+    $stickerID = 'RFID' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
+    // Insert new RFID tag with 'available' status
+    $insertQuery = "INSERT INTO rfidtag (stickerID, tagCode, status, issuedBy) VALUES (?, ?, 'available', NULL)";
+    $insertStmt = $conn->prepare($insertQuery);
+    $insertStmt->bind_param("ss", $stickerID, $tagCode);
+
+    if ($insertStmt->execute()) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'RFID tag added successfully',
+            'stickerID' => $stickerID
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to add RFID tag: ' . $conn->error]);
+    }
+
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+} finally {
+    $db->closeConnection();
+}
 ?>

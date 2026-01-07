@@ -249,7 +249,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 if (data.success) {
                                     alert('Vehicle deleted successfully!');
                                     document.getElementById('deleteVehicleModal').style.display = 'none';
-                                    location.reload();
+                                    document.getElementById('deleteVehicleAdminPassword').value = '';
+                                    // Reload page to refresh vehicle list
+                                    window.location.reload();
                                 } else {
                                     alert('Error: ' + data.message);
                                 }
@@ -338,6 +340,16 @@ function viewVehicle(plateNum) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                let additionalDriverHtml = '';
+                if (data.vehicle.driverName && data.vehicle.driverName.trim() !== '') {
+                    additionalDriverHtml = `
+                        <hr style="margin: 15px 0; border: 1px solid #e5e7eb;">
+                        <h4 style="margin-bottom: 10px; color: #374151;">Additional Driver</h4>
+                        <p><strong>Driver Name:</strong> ${data.vehicle.driverName}</p>
+                        <p><strong>Relationship:</strong> ${data.vehicle.driverRelationship || 'N/A'}</p>
+                    `;
+                }
+
                 document.getElementById('viewContent').innerHTML = `
             <p><strong>Plate Number:</strong> ${data.vehicle.plateNum}</p>
             <p><strong>Owner:</strong> ${data.vehicle.fName || ''} ${data.vehicle.lName || ''}</p>
@@ -350,6 +362,7 @@ function viewVehicle(plateNum) {
             <p><strong>Fuel Type:</strong> ${data.vehicle.fuelType || 'N/A'}</p>
             <p><strong>RFID Tag:</strong> ${data.vehicle.stickerID || 'Not Assigned'}</p>
             <p><strong>Car Pass ID:</strong> ${data.vehicle.carpassid || 'Not Assigned'}</p>
+            ${additionalDriverHtml}
           `;
                 document.getElementById('viewModal').style.display = 'block';
             } else {

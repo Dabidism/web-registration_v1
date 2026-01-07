@@ -1,5 +1,6 @@
 <?php
 // Process RFID tag issuance via AJAX
+session_start();
 header('Content-Type: application/json');
 
 // Check if request is POST
@@ -25,44 +26,74 @@ $db = new Database();
 $conn = $db->getConnection();
 
 try {
-    // Check if sticker ID already exists
-    $checkQuery = "SELECT plateNum FROM vehicle WHERE stickerID = ?";
-    $checkStmt = $conn->prepare($checkQuery);
-    $checkStmt->bind_param("s", $stickerID);
-    $checkStmt->execute();
-    $checkResult = $checkStmt->get_result();
-    
-    if ($checkResult->num_rows > 0) {
-        echo json_encode(['success' => false, 'message' => 'This sticker ID is already assigned to another vehicle']);
+    // Check if RFID tag is available in rfidtag table
+    $checkRfidQuery = "SELECT status FROM rfidtag WHERE stickerID = ?";
+    $checkRfidStmt = $conn->prepare($checkRfidQuery);
+    $checkRfidStmt->bind_param("s", $stickerID);
+    $checkRfidStmt->execute();
+    $rfidResult = $checkRfidStmt->get_result();
+
+    if ($rfidResult->num_rows === 0) {
+        echo json_encode(['success' => false, 'message' => 'Invalid RFID tag ID']);
         exit;
     }
-    
-    // Insert RFID tag record and update vehicle
-    $conn->begin_transaction();
-    
 
-    
-    // Update RFID tag status to active
-    $updateRfidQuery = "UPDATE rfidtag SET status = 'active', issuedAt = NOW() WHERE stickerID = ?";
-    $updateRfidStmt = $conn->prepare($updateRfidQuery);
-    $updateRfidStmt->bind_param("s", $stickerID);
-    $updateRfidStmt->execute();
-    
+    $rfidData = $rfidResult->fetch_assoc();
+    if ($rfidData['status'] === 'unavailable') {
+        echo json_encode(['success' => false, 'message' => 'RFID tag is already assigned']);
+        exit;
+    }
+
+    // Check if vehicle already has an RFID tag
+    $checkQuery = "SELECT stickerID FROM vehicle WHERE plateNum = ?";
+    $checkStmt = $conn->prepare($checkQuery);
+    $checkStmt->bind_param("s", $plateNum);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+
+    if ($checkResult->num_rows === 0) {
+        echo json_encode(['success' => false, 'message' => 'Vehicle not found']);
+        exit;
+    }
+
+    $vehicle = $checkResult->fetch_assoc();
+    if (!empty($vehicle['stickerID'])) {
+        echo json_encode(['success' => false, 'message' => 'Vehicle already has an RFID tag assigned']);
+        exit;
+    }
+
+    // Start transaction
+    $conn->begin_transaction();
+
     // Update vehicle with sticker ID
     $updateQuery = "UPDATE vehicle SET stickerID = ? WHERE plateNum = ?";
     $updateStmt = $conn->prepare($updateQuery);
     $updateStmt->bind_param("ss", $stickerID, $plateNum);
-    
+
     if ($updateStmt->execute()) {
-        $conn->commit();
-        echo json_encode(['success' => true, 'message' => 'RFID tag issued successfully']);
+        // Update rfidtag status to unavailable
+        $username = $_SESSION['username'] ?? 'admin';
+        $updateRfidQuery = "UPDATE rfidtag SET status = 'unavailable', issuedBy = ? WHERE stickerID = ?";
+        $updateRfidStmt = $conn->prepare($updateRfidQuery);
+        $updateRfidStmt->bind_param("ss", $username, $stickerID);
+
+        if ($updateRfidStmt->execute()) {
+            $conn->commit();
+            echo json_encode(['success' => true, 'message' => 'RFID tag issued successfully']);
+        } else {
+            // Rollback vehicle update if rfidtag update fails
+            $conn->rollback();
+            echo json_encode(['success' => false, 'message' => 'Failed to update RFID tag status']);
+        }
     } else {
         $conn->rollback();
         echo json_encode(['success' => false, 'message' => 'Failed to issue RFID tag: ' . $conn->error]);
     }
 } catch (Exception $e) {
-    $conn->rollback();
+    if ($conn)
+        $conn->rollback();
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 } finally {
     $db->closeConnection();
 }
+?>

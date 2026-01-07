@@ -128,7 +128,7 @@ function loadAvailableRfidTags() {
         response.data.forEach(rfid => {
           const option = document.createElement('option');
           option.value = rfid.stickerID;
-          option.textContent = `${rfid.stickerID} - ${rfid.rfidCode}`;
+          option.textContent = `${rfid.stickerID}${rfid.tagCode ? ' - ' + rfid.tagCode.substring(0, 20) + '...' : ''}`;
           select.appendChild(option);
         });
       } else {
@@ -168,24 +168,24 @@ function loadAvailableCarpass() {
 }
 
 function addRfidTag() {
-  const rfidCode = document.getElementById('newRfidCode').value;
+  const tagCode = document.getElementById('newRfidCode').value;
 
-  if (!rfidCode) {
-    alert('Please enter RFID Code');
+  if (!tagCode) {
+    alert('Please enter RFID tag code');
     return;
   }
 
   fetch('ajax/add_rfid.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `rfidCode=${encodeURIComponent(rfidCode)}`
+    body: `tagCode=${encodeURIComponent(tagCode)}`
   })
     .then(response => response.json())
     .then(response => {
       if (response.success) {
         document.getElementById('addRfidModal').style.display = 'none';
         document.getElementById('successMessage').textContent = 'RFID Tag Added Successfully!';
-        document.getElementById('successDescription').textContent = 'The new RFID tag has been registered in the system.';
+        document.getElementById('successDescription').textContent = `Tag assigned ID: ${response.stickerID}`;
         document.getElementById('successPopup').style.display = 'block';
       } else {
         alert('Error: ' + response.message);
