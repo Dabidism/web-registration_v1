@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <h2>Login</h2>
 
                 <?php if (isset($error)): ?>
-                    <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
+                    <div id="login-error-message" class="error-message" role="alert"><?php echo htmlspecialchars($error); ?></div>
                 <?php endif; ?>
 
                 <div class="form-group">

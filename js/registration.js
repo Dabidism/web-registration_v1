@@ -201,11 +201,81 @@ document.addEventListener('DOMContentLoaded', function () {
     updateDeleteButtonVisibility();
 
 
+    // === Real-time Field Validation (blur events) ===
+    const emailInput = document.getElementById('emailInput');
+    const emailError = document.getElementById('emailError');
+    if (emailInput && emailError) {
+        emailInput.addEventListener('blur', function () {
+            const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.value && !emailRe.test(this.value.trim())) {
+                emailError.textContent = 'Invalid email address. Please enter a valid email.';
+                emailError.classList.remove('hidden');
+            } else {
+                emailError.classList.add('hidden');
+            }
+        });
+        emailInput.addEventListener('input', function () {
+            if (emailError && !emailError.classList.contains('hidden')) {
+                emailError.classList.add('hidden');
+            }
+        });
+    }
+
+    const contactInput = document.getElementById('contactNumInput');
+    const contactNumError = document.getElementById('contactNumError');
+    if (contactInput && contactNumError) {
+        contactInput.addEventListener('blur', function () {
+            const contact = this.value.trim().replace(/\s/g, '');
+            if (this.value && (contact.length < 10 || contact.length > 15 || !/^[0-9+\-]+$/.test(contact))) {
+                contactNumError.textContent = 'Invalid phone number. Use 10-15 digits.';
+                contactNumError.classList.remove('hidden');
+            } else {
+                contactNumError.classList.add('hidden');
+            }
+        });
+        contactInput.addEventListener('input', function () {
+            if (contactNumError && !contactNumError.classList.contains('hidden')) {
+                contactNumError.classList.add('hidden');
+            }
+        });
+    }
+
     // === Form Submission Logic ===
     const registrationForm = document.getElementById('registrationForm');
     if (registrationForm) {
         registrationForm.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            const emailError = document.getElementById('emailError');
+            const contactNumError = document.getElementById('contactNumError');
+            if (emailError) emailError.classList.add('hidden');
+            if (contactNumError) contactNumError.classList.add('hidden');
+
+            // Email format validation (visible message containing "invalid")
+            const emailInput = document.getElementById('emailInput');
+            if (emailInput && emailInput.value) {
+                const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRe.test(emailInput.value.trim())) {
+                    if (emailError) {
+                        emailError.textContent = 'Invalid email address. Please enter a valid email.';
+                        emailError.classList.remove('hidden');
+                    }
+                    return;
+                }
+            }
+
+            // Phone format validation (visible message containing "invalid" and "Phone" or "phone")
+            const contactInput = document.getElementById('contactNumInput');
+            if (contactInput && contactInput.value) {
+                const contact = contactInput.value.trim().replace(/\s/g, '');
+                if (contact.length < 10 || contact.length > 15 || !/^[0-9+\-]+$/.test(contact)) {
+                    if (contactNumError) {
+                        contactNumError.textContent = 'Invalid phone number. Use 10-15 digits.';
+                        contactNumError.classList.remove('hidden');
+                    }
+                    return;
+                }
+            }
 
             // Validate form
             const requiredFields = this.querySelectorAll('[required]');
@@ -330,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.updateCheckboxStyle = function (checkbox) {
         // This function is for the modal checkbox
-        const agreeBtn = document.getElementById('agreeBtn');
+        const agreeBtn = document.getElementById('termsAgreeBtn');
 
         if (checkbox.checked) {
             checkbox.classList.add('checked'); // Visual style if needed

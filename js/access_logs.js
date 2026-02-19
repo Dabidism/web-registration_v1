@@ -1,4 +1,19 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // Date filter: reload with query params
+    const dateFilterBtn = document.getElementById('dateFilterBtn');
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    if (dateFilterBtn && fromDateInput && toDateInput) {
+        dateFilterBtn.addEventListener('click', function () {
+            const from = fromDateInput.value || '';
+            const to = toDateInput.value || '';
+            const params = new URLSearchParams(window.location.search);
+            if (from) params.set('fromDate', from); else params.delete('fromDate');
+            if (to) params.set('toDate', to); else params.delete('toDate');
+            window.location.search = params.toString();
+        });
+    }
+
     // Client-side search functionality
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {

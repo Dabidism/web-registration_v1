@@ -76,11 +76,13 @@ require_once 'dbConnection.php';
           </div>
           <div>
             <label>Email Address</label>
-            <input type="email" name="email" placeholder="Enter your email address" required />
+            <input type="email" name="email" id="emailInput" placeholder="Enter your email address" required />
+            <span id="emailError" class="field-error hidden" role="alert">Invalid email address. Please enter a valid email.</span>
           </div>
           <div>
             <label>Contact Number</label>
-            <input type="text" name="contactNum" placeholder="Enter your contact number" required />
+            <input type="text" name="contactNum" id="contactNumInput" placeholder="e.g. 09XXXXXXXXX" required />
+            <span id="contactNumError" class="field-error hidden" role="alert">Invalid phone number. Use 10-15 digits.</span>
           </div>
         </div>
 
@@ -400,9 +402,8 @@ require_once 'dbConnection.php';
         </label>
 
         <div class="terms-buttons">
-          <button onclick="closeTermsModal()" class="decline-btn">Decline</button>
-          <button id="agreeBtn" onclick="agreeToTerms()" disabled class="agree-btn">I
-            Agree</button>
+          <button id="termsDeclineBtn" type="button" onclick="closeTermsModal()" class="decline-btn">Decline</button>
+          <button id="termsAgreeBtn" type="button" onclick="agreeToTerms()" disabled class="agree-btn">I Agree</button>
         </div>
       </div>
     </div>

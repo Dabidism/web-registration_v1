@@ -49,6 +49,16 @@ include_once '../includes/header.php';
             <option value="non-teaching">Non-Teaching Personnel</option>
           </select>
         </div>
+        <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
+          <button class="add-btn" id="addOwnerBtn" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Add Owner
+          </button>
+        <?php endif; ?>
       </div>
     </div>
 
@@ -155,7 +165,9 @@ include_once '../includes/header.php';
 
       <div class="form-group">
         <label>Contact:</label>
-        <input type="text" id="editContact" name="contact_num" required>
+        <input type="text" id="editContact" name="contact_num" required placeholder="e.g. 09XXXXXXXXX">
+        <span id="editContactError" class="field-error hidden" role="alert">Invalid phone/contact format. Use 10-15
+          digits (e.g. 09XXXXXXXXX).</span>
       </div>
 
       <div class="form-group">
@@ -187,6 +199,73 @@ include_once '../includes/header.php';
       </div>
 
       <button type="button" id="saveOwnerEdit" class="btn-save">Save</button>
+    </form>
+  </div>
+</div>
+
+<!-- Add Owner Modal -->
+<div id="addOwnerModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>Add New Vehicle Owner</h3>
+    <div id="addOwnerMessage" class="form-message hidden" role="alert"></div>
+    <form id="addOwnerForm">
+      <div class="form-group">
+        <label>First Name:</label>
+        <input type="text" id="addFName" name="fName" required>
+      </div>
+      <div class="form-group">
+        <label>Last Name:</label>
+        <input type="text" id="addLName" name="lName" required>
+      </div>
+      <div class="form-group">
+        <label>Middle Name:</label>
+        <input type="text" id="addMName" name="mName">
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" id="addEmail" name="email" required>
+      </div>
+      <div class="form-group">
+        <label>Contact Number:</label>
+        <input type="text" id="addContact" name="contact_num" required placeholder="e.g. 09XXXXXXXXX"
+          pattern="[0-9+\s\-]{10,15}" title="Enter a valid phone number (10-15 digits)">
+        <span id="addContactError" class="field-error hidden">Invalid phone format. Use 10-15 digits (e.g.
+          09XXXXXXXXX).</span>
+      </div>
+      <div class="form-group">
+        <label>Role:</label>
+        <select id="addRole" name="role" required>
+          <option value="">Select Role</option>
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+          <option value="non-teaching">Non-Teaching Personnel</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>College:</label>
+        <input type="text" id="addCollege" name="college" required>
+      </div>
+      <div class="form-group">
+        <label>Course:</label>
+        <input type="text" id="addCourse" name="course">
+      </div>
+      <div class="form-group hidden" id="addEmploymentTypeField">
+        <label>Employment Type:</label>
+        <select id="addEmploymentType" name="employment_type">
+          <option value="">Select Employment Type</option>
+          <option value="permanent">Permanent</option>
+          <option value="job_hire">Job Hire</option>
+          <option value="part_time">Part-time</option>
+        </select>
+      </div>
+      <hr style="margin:15px 0;">
+      <p style="color:#dc2626;font-weight:600;">Admin Confirmation Required</p>
+      <div class="form-group">
+        <label>Admin Password:</label>
+        <input type="password" id="addOwnerAdminPassword" required placeholder="Enter your admin password to confirm">
+      </div>
+      <button type="button" id="saveAddOwner" class="btn-save">Add Owner</button>
     </form>
   </div>
 </div>

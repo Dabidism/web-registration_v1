@@ -17,13 +17,39 @@ require_once 'dbConnection.php';
 $db = new Database();
 $conn = $db->getConnection();
 
-// Get access logs with user information (exclude failed login attempts)
+// Date filter (optional)
+$fromDate = isset($_GET['fromDate']) ? $_GET['fromDate'] : '';
+$toDate = isset($_GET['toDate']) ? $_GET['toDate'] : '';
+$whereClause = " WHERE al.action != 'failed_login'";
+$params = [];
+$types = '';
+if ($fromDate !== '' && $toDate !== '') {
+    $whereClause .= " AND DATE(al.timestamp) BETWEEN ? AND ?";
+    $params = [$fromDate, $toDate];
+    $types = 'ss';
+} elseif ($fromDate !== '') {
+    $whereClause .= " AND DATE(al.timestamp) >= ?";
+    $params = [$fromDate];
+    $types = 's';
+} elseif ($toDate !== '') {
+    $whereClause .= " AND DATE(al.timestamp) <= ?";
+    $params = [$toDate];
+    $types = 's';
+}
+
 $query = "SELECT al.*, u.username, u.role 
           FROM accesslog al 
           LEFT JOIN user u ON al.userID = u.userID 
-          WHERE al.action != 'failed_login'
+          $whereClause
           ORDER BY al.timestamp DESC";
-$result = $conn->query($query);
+if ($params) {
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $result = $conn->query($query);
+}
 
 // Include header
 include_once '../includes/header.php';
@@ -51,6 +77,13 @@ include_once '../includes/header.php';
             <option value="login">Login</option>
             <option value="logout">Logout</option>
           </select>
+        </div>
+        <div class="filter-container" style="display:flex; align-items:center; gap:8px;">
+          <label for="fromDate">From</label>
+          <input type="date" id="fromDate" name="fromDate" value="<?php echo htmlspecialchars($fromDate); ?>">
+          <label for="toDate">To</label>
+          <input type="date" id="toDate" name="toDate" value="<?php echo htmlspecialchars($toDate); ?>">
+          <button type="button" id="dateFilterBtn" class="search-btn">Filter</button>
         </div>
 
       </div>

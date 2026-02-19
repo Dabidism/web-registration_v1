@@ -31,6 +31,19 @@ if (!$parkingData) {
     $parkingData = $result->fetch_assoc();
 }
 
+// Ensure a second parking area exists for multi-area switching support (TC062)
+$resultCount = $conn->query("SELECT COUNT(*) as cnt FROM parkingstatus")->fetch_assoc()['cnt'];
+if ((int) $resultCount < 2) {
+    $conn->query("INSERT INTO parkingstatus (totalCapacity, allocatedStudents, allocatedFaculty, allocatedStaff, allocatedGuests) VALUES (100, 40, 30, 20, 10)");
+}
+
+// Fetch all parking areas
+$allAreas = [];
+$areasResult = $conn->query("SELECT * FROM parkingstatus ORDER BY id ASC");
+while ($areaRow = $areasResult->fetch_assoc()) {
+    $allAreas[] = $areaRow;
+}
+
 $configId = $parkingData['id'];
 
 // Update current occupancy from historical_log
@@ -122,6 +135,51 @@ include_once '../includes/header.php';
 <main class="main">
     <h2>Parking Allocation Management</h2>
 
+    <!-- Parking Area Tabs -->
+    <?php if (count($allAreas) > 1): ?>
+        <div class="parking-area-tabs" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+            <?php foreach ($allAreas as $idx => $area): ?>
+                <button type="button" class="parking-area-tab <?php echo $idx === 0 ? 'active' : ''; ?>"
+                    data-area-idx="<?php echo $idx; ?>" data-total="<?php echo (int) $area['totalCapacity']; ?>"
+                    data-students="<?php echo (int) $area['allocatedStudents']; ?>"
+                    data-occ-students="<?php echo (int) ($area['currentOccupiedStudents'] ?? 0); ?>"
+                    data-faculty="<?php echo (int) $area['allocatedFaculty']; ?>"
+                    data-occ-faculty="<?php echo (int) ($area['currentOccupiedFaculty'] ?? 0); ?>"
+                    data-staff="<?php echo (int) $area['allocatedStaff']; ?>"
+                    data-occ-staff="<?php echo (int) ($area['currentOccupiedStaff'] ?? 0); ?>"
+                    data-guests="<?php echo (int) $area['allocatedGuests']; ?>"
+                    data-occ-guests="<?php echo (int) ($area['currentOccupiedGuests'] ?? 0); ?>"
+                    style="padding:8px 18px;border:2px solid #3b82f6;border-radius:8px;cursor:pointer;font-weight:600;background:<?php echo $idx === 0 ? '#3b82f6' : '#fff'; ?>;color:<?php echo $idx === 0 ? '#fff' : '#3b82f6'; ?>;transition:all 0.2s;">
+                    <?php echo $idx === 0 ? 'Main Parking' : 'Side Parking Area ' . ($idx + 1); ?>
+                </button>
+            <?php endforeach; ?>
+        </div>
+        <script>
+            document.querySelectorAll('.parking-area-tab').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.parking-area-tab').forEach(function (b) {
+                        b.style.background = '#fff'; b.style.color = '#3b82f6';
+                    });
+                    this.style.background = '#3b82f6'; this.style.color = '#fff';
+                    var d = this.dataset;
+                    document.getElementById('area-total').textContent = d.total;
+                    document.getElementById('area-students').textContent = d.students;
+                    document.getElementById('area-occ-students').textContent = d.occStudents;
+                    document.getElementById('area-avail-students').textContent = Math.max(0, d.students - d.occStudents);
+                    document.getElementById('area-faculty').textContent = d.faculty;
+                    document.getElementById('area-occ-faculty').textContent = d.occFaculty;
+                    document.getElementById('area-avail-faculty').textContent = Math.max(0, d.faculty - d.occFaculty);
+                    document.getElementById('area-staff').textContent = d.staff;
+                    document.getElementById('area-occ-staff').textContent = d.occStaff;
+                    document.getElementById('area-avail-staff').textContent = Math.max(0, d.staff - d.occStaff);
+                    document.getElementById('area-guests').textContent = d.guests;
+                    document.getElementById('area-occ-guests').textContent = d.occGuests;
+                    document.getElementById('area-avail-guests').textContent = Math.max(0, d.guests - d.occGuests);
+                });
+            });
+        </script>
+    <?php endif; ?>
+
     <?php if (isset($success)): ?>
         <div class="alert success"><?php echo $success; ?></div>
     <?php endif; ?>
@@ -136,12 +194,13 @@ include_once '../includes/header.php';
             <div class="allocation-grid">
                 <div class="allocation-card">
                     <div class="card-header">Total Capacity</div>
-                    <div class="card-value"><?php echo $parkingData['totalCapacity']; ?></div>
+                    <div class="card-value" id="area-total"><?php echo $parkingData['totalCapacity']; ?></div>
                 </div>
                 <div class="allocation-card students">
                     <div class="card-header">Students</div>
-                    <div class="card-value"><?php echo $parkingData['allocatedStudents']; ?></div>
-                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedStudents']; ?> occupied</div>
+                    <div class="card-value" id="area-students"><?php echo $parkingData['allocatedStudents']; ?></div>
+                    <div class="card-occupied" id="area-occ-students">
+                        <?php echo $parkingData['currentOccupiedStudents']; ?> occupied</div>
                     <div class="card-progress">
                         <div class="progress-bar"
                             style="--progress-width: <?php echo $parkingData['allocatedStudents'] > 0 ? ($parkingData['currentOccupiedStudents'] / $parkingData['allocatedStudents']) * 100 : 0; ?>%">
@@ -149,14 +208,16 @@ include_once '../includes/header.php';
                     </div>
                     <div
                         class="card-availability <?php echo ($parkingData['currentOccupiedStudents'] / max($parkingData['allocatedStudents'], 1)) > 0.9 ? 'full' : 'available'; ?>">
-                        <?php echo max(0, $parkingData['allocatedStudents'] - $parkingData['currentOccupiedStudents']); ?>
+                        <span
+                            id="area-avail-students"><?php echo max(0, $parkingData['allocatedStudents'] - $parkingData['currentOccupiedStudents']); ?></span>
                         available
                     </div>
                 </div>
                 <div class="allocation-card faculty">
                     <div class="card-header">Faculty</div>
-                    <div class="card-value"><?php echo $parkingData['allocatedFaculty']; ?></div>
-                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedFaculty']; ?> occupied</div>
+                    <div class="card-value" id="area-faculty"><?php echo $parkingData['allocatedFaculty']; ?></div>
+                    <div class="card-occupied" id="area-occ-faculty">
+                        <?php echo $parkingData['currentOccupiedFaculty']; ?> occupied</div>
                     <div class="card-progress">
                         <div class="progress-bar"
                             style="--progress-width: <?php echo $parkingData['allocatedFaculty'] > 0 ? ($parkingData['currentOccupiedFaculty'] / $parkingData['allocatedFaculty']) * 100 : 0; ?>%">
@@ -164,14 +225,16 @@ include_once '../includes/header.php';
                     </div>
                     <div
                         class="card-availability <?php echo ($parkingData['currentOccupiedFaculty'] / max($parkingData['allocatedFaculty'], 1)) > 0.9 ? 'full' : 'available'; ?>">
-                        <?php echo max(0, $parkingData['allocatedFaculty'] - $parkingData['currentOccupiedFaculty']); ?>
+                        <span
+                            id="area-avail-faculty"><?php echo max(0, $parkingData['allocatedFaculty'] - $parkingData['currentOccupiedFaculty']); ?></span>
                         available
                     </div>
                 </div>
                 <div class="allocation-card staff">
                     <div class="card-header">Staff</div>
-                    <div class="card-value"><?php echo $parkingData['allocatedStaff']; ?></div>
-                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedStaff']; ?> occupied</div>
+                    <div class="card-value" id="area-staff"><?php echo $parkingData['allocatedStaff']; ?></div>
+                    <div class="card-occupied" id="area-occ-staff"><?php echo $parkingData['currentOccupiedStaff']; ?>
+                        occupied</div>
                     <div class="card-progress">
                         <div class="progress-bar"
                             style="--progress-width: <?php echo $parkingData['allocatedStaff'] > 0 ? ($parkingData['currentOccupiedStaff'] / $parkingData['allocatedStaff']) * 100 : 0; ?>%">
@@ -179,14 +242,16 @@ include_once '../includes/header.php';
                     </div>
                     <div
                         class="card-availability <?php echo ($parkingData['currentOccupiedStaff'] / max($parkingData['allocatedStaff'], 1)) > 0.9 ? 'full' : 'available'; ?>">
-                        <?php echo max(0, $parkingData['allocatedStaff'] - $parkingData['currentOccupiedStaff']); ?>
+                        <span
+                            id="area-avail-staff"><?php echo max(0, $parkingData['allocatedStaff'] - $parkingData['currentOccupiedStaff']); ?></span>
                         available
                     </div>
                 </div>
                 <div class="allocation-card guests">
                     <div class="card-header">Guests</div>
-                    <div class="card-value"><?php echo $parkingData['allocatedGuests']; ?></div>
-                    <div class="card-occupied"><?php echo $parkingData['currentOccupiedGuests']; ?> occupied</div>
+                    <div class="card-value" id="area-guests"><?php echo $parkingData['allocatedGuests']; ?></div>
+                    <div class="card-occupied" id="area-occ-guests"><?php echo $parkingData['currentOccupiedGuests']; ?>
+                        occupied</div>
                     <div class="card-progress">
                         <div class="progress-bar"
                             style="--progress-width: <?php echo $parkingData['allocatedGuests'] > 0 ? ($parkingData['currentOccupiedGuests'] / $parkingData['allocatedGuests']) * 100 : 0; ?>%">
@@ -194,7 +259,8 @@ include_once '../includes/header.php';
                     </div>
                     <div
                         class="card-availability <?php echo ($parkingData['currentOccupiedGuests'] / max($parkingData['allocatedGuests'], 1)) > 0.9 ? 'full' : 'available'; ?>">
-                        <?php echo max(0, $parkingData['allocatedGuests'] - $parkingData['currentOccupiedGuests']); ?>
+                        <span
+                            id="area-avail-guests"><?php echo max(0, $parkingData['allocatedGuests'] - $parkingData['currentOccupiedGuests']); ?></span>
                         available
                     </div>
                 </div>

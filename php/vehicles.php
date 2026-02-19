@@ -215,6 +215,7 @@ include_once '../includes/header.php';
   <div class="modal-content">
     <span class="close">&times;</span>
     <h3>Add New Vehicle</h3>
+    <div id="addVehicleMessage" class="form-message hidden" role="alert"></div>
     <form id="addForm">
       <div class="form-group">
         <label>Owner:</label>
@@ -303,6 +304,7 @@ include_once '../includes/header.php';
 
       <button type="button" id="saveAdd" class="btn-save">Add Vehicle</button>
     </form>
+    <p id="addVehicleSuccessMsg" class="success-message hidden" role="status">Vehicle added successfully!</p>
   </div>
 </div>
 

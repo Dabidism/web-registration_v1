@@ -14,13 +14,40 @@ require_once 'dbConnection.php';
 $db = new Database();
 $conn = $db->getConnection();
 
-// Get entry/exit logs
+// Date filter (optional)
+$fromDate = isset($_GET['fromDate']) ? $_GET['fromDate'] : '';
+$toDate = isset($_GET['toDate']) ? $_GET['toDate'] : '';
+$whereClause = '';
+$params = [];
+$types = '';
+if ($fromDate !== '' && $toDate !== '') {
+    $whereClause = " WHERE DATE(eel.entryTime) BETWEEN ? AND ?";
+    $params = [$fromDate, $toDate];
+    $types = 'ss';
+} elseif ($fromDate !== '') {
+    $whereClause = " WHERE DATE(eel.entryTime) >= ?";
+    $params = [$fromDate];
+    $types = 's';
+} elseif ($toDate !== '') {
+    $whereClause = " WHERE DATE(eel.entryTime) <= ?";
+    $params = [$toDate];
+    $types = 's';
+}
+
 $query = "SELECT eel.*, v.plateNum, vo.fName, vo.lName, vo.role, v.stickerID
           FROM entryexitlog eel 
           LEFT JOIN vehicle v ON eel.plateNum = v.plateNum 
           LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
+          $whereClause
           ORDER BY eel.entryTime DESC";
-$result = $conn->query($query);
+if ($params) {
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+} else {
+    $result = $conn->query($query);
+}
 if (!$result)
   $result = (object) ['num_rows' => 0];
 
@@ -46,12 +73,23 @@ include_once '../includes/header.php';
           </button>
         </div>
       </div>
+      <div class="date-filter-area" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <label for="fromDate">From</label>
+        <input type="date" id="fromDate" name="fromDate" value="<?php echo htmlspecialchars($fromDate); ?>">
+        <label for="toDate">To</label>
+        <input type="date" id="toDate" name="toDate" value="<?php echo htmlspecialchars($toDate); ?>">
+        <button type="button" id="dateFilterBtn" class="search-btn">Filter</button>
+      </div>
       <div class="traffic-btn-group">
         <div class="traffic-btn-box">
           <div class="traffic-btn-slider"></div>
           <button class="traffic-btn active">Registered Vehicle</button>
           <button class="traffic-btn">Visitor</button>
         </div>
+      </div>
+      <div class="record-actions" style="display:flex; gap:10px;">
+        <button type="button" id="recordEntryBtn" class="add-btn">Record Entry</button>
+        <button type="button" id="recordExitBtn" class="add-btn">Record Exit</button>
       </div>
     </div>
   </div>
@@ -97,6 +135,34 @@ include_once '../includes/header.php';
     </tbody>
   </table>
 </main>
+
+<!-- Record Entry Modal -->
+<div id="recordEntryModal" class="modal" style="display:none;">
+  <div class="modal-content small">
+    <span class="close">&times;</span>
+    <h3>Record Entry</h3>
+    <p>Record a vehicle entry. (Backend integration can be added here.)</p>
+    <div class="form-group">
+      <label>Plate Number / Identifier:</label>
+      <input type="text" id="entryPlateNum" placeholder="Plate number or visitor ID">
+    </div>
+    <button type="button" id="submitRecordEntry" class="btn-save">Record Entry</button>
+  </div>
+</div>
+
+<!-- Record Exit Modal -->
+<div id="recordExitModal" class="modal" style="display:none;">
+  <div class="modal-content small">
+    <span class="close">&times;</span>
+    <h3>Record Exit</h3>
+    <p>Record a vehicle exit. (Backend integration can be added here.)</p>
+    <div class="form-group">
+      <label>Plate Number / Identifier:</label>
+      <input type="text" id="exitPlateNum" placeholder="Plate number or visitor ID">
+    </div>
+    <button type="button" id="submitRecordExit" class="btn-save">Record Exit</button>
+  </div>
+</div>
 
 <?php
 $db->closeConnection();

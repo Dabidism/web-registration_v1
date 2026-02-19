@@ -18,11 +18,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Generate report based on selected period
+    // Generate report based on selected period (with validation)
     if (generateReportBtn) {
         generateReportBtn.addEventListener("click", () => {
             const period = document.getElementById("reportPeriod").value;
             const customDate = document.getElementById("customDate").value;
+            if (!period) {
+                alert("Please select a report period (e.g. Day, Week, Month, or Custom Date).");
+                return;
+            }
+            if (period === "custom" && !customDate) {
+                alert("Please select a date for Custom Date range.");
+                return;
+            }
             generateReport(period, customDate);
         });
     }
@@ -246,17 +254,22 @@ document.addEventListener('DOMContentLoaded', function () {
             // Handle null/empty violation data
             const violationType = item.violationType || '<span style="color:#94a3b8; font-style:italic;">No Record</span>';
             const status = item.status ? item.status.toUpperCase() : 'CLEAN';
+            const isPending = status === 'PENDING';
+            const violationID = item.violationID || '';
 
             // Status styling
             let statusClass = 'status-badge';
             if (status === 'RESOLVED' || status === 'PAID') {
                 statusClass += ' status-active';
             } else if (status === 'CLEAN') {
-                statusClass += ' status-active'; // Reuse active green style for clean
-                // Or create a new class .status-clean if you want different color
+                statusClass += ' status-active';
             } else {
                 statusClass += ' status-pending';
             }
+
+            const resolveBtn = isPending && violationID
+                ? `<td><button type="button" class="btn-resolve-violation" data-violation-id="${violationID}">Resolve</button></td>`
+                : '<td></td>';
 
             row.innerHTML = `
                 <td><strong>${item.plateNum}</strong></td>
@@ -275,8 +288,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td>${violationType}</td>
                 <td><span class="${statusClass}">${status}</span></td>
                 <td>${item.formatted_date}</td>
+                ${resolveBtn}
             `;
             resultsBody.appendChild(row);
+        });
+
+        // Resolve button handlers
+        resultsBody.querySelectorAll('.btn-resolve-violation').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-violation-id');
+                if (!id) return;
+                if (!confirm('Mark this violation as resolved?')) return;
+                fetch('ajax/resolve_violation.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'violationID=' + encodeURIComponent(id)
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Violation marked as resolved.');
+                            performSearch();
+                        } else {
+                            alert('Error: ' + (data.message || 'Failed to resolve'));
+                        }
+                    })
+                    .catch(err => { console.error(err); alert('Request failed.'); });
+            });
         });
     }
 });

@@ -13,6 +13,41 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Add Owner button
+    const addOwnerBtn = document.getElementById('addOwnerBtn');
+    if (addOwnerBtn) {
+        addOwnerBtn.addEventListener('click', function () {
+            document.getElementById('addOwnerMessage').classList.add('hidden');
+            document.getElementById('addOwnerForm').reset();
+            const empField = document.getElementById('addEmploymentTypeField');
+            if (empField) { empField.classList.add('hidden'); empField.style.display = 'none'; }
+            document.getElementById('addOwnerModal').style.display = 'flex';
+        });
+    }
+
+    // Add Owner: role change to show employment type
+    const addRole = document.getElementById('addRole');
+    if (addRole) {
+        addRole.addEventListener('change', function () {
+            const empField = document.getElementById('addEmploymentTypeField');
+            if (!empField) return;
+            if (this.value === 'faculty' || this.value === 'non-teaching') {
+                empField.classList.remove('hidden');
+                empField.style.display = 'block';
+            } else {
+                empField.classList.add('hidden');
+                empField.style.display = 'none';
+            }
+        });
+    }
+
+    // Contact number validation (10-15 digits, optional + - space)
+    function validateContact(value) {
+        const v = (value || '').trim();
+        if (v.length < 10 || v.length > 15) return false;
+        return /^[0-9+\s\-]+$/.test(v);
+    }
+
     // Filter by role
     const filterRole = document.getElementById('filterRole');
     if (filterRole) {
@@ -135,10 +170,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Save owner edit
+    // Save owner edit (with contact validation)
     const saveOwnerEditBtn = document.getElementById('saveOwnerEdit');
     if (saveOwnerEditBtn) {
         saveOwnerEditBtn.addEventListener('click', function () {
+            const contactVal = document.getElementById('editContact').value;
+            const editContactError = document.getElementById('editContactError');
+            if (editContactError) editContactError.classList.add('hidden');
+            if (!validateContact(contactVal)) {
+                if (editContactError) {
+                    editContactError.classList.remove('hidden');
+                }
+                return;
+            }
             const adminPassword = document.getElementById('editOwnerAdminPassword').value;
 
             if (!adminPassword) {
@@ -146,11 +190,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // Verify admin password first
             verifyAdminPassword(adminPassword)
                 .then(success => {
                     if (success) {
-                        // Admin verified, proceed with updating owner
                         const formData = new FormData(document.getElementById('editOwnerForm'));
 
                         fetch('ajax/update_owner.php', {
@@ -170,6 +212,61 @@ document.addEventListener('DOMContentLoaded', function () {
                             .catch(error => {
                                 console.error('Error:', error);
                                 alert('Failed to update owner');
+                            });
+                    }
+                });
+        });
+    }
+
+    // Save Add Owner
+    const saveAddOwnerBtn = document.getElementById('saveAddOwner');
+    if (saveAddOwnerBtn) {
+        saveAddOwnerBtn.addEventListener('click', function () {
+            const msgEl = document.getElementById('addOwnerMessage');
+            const contactVal = document.getElementById('addContact').value;
+            const addContactError = document.getElementById('addContactError');
+            if (addContactError) addContactError.classList.add('hidden');
+            if (msgEl) msgEl.classList.add('hidden');
+
+            if (!validateContact(contactVal)) {
+                if (addContactError) {
+                    addContactError.classList.remove('hidden');
+                }
+                if (msgEl) {
+                    msgEl.textContent = 'Invalid phone/contact format. Use 10-15 digits (e.g. 09XXXXXXXXX).';
+                    msgEl.classList.remove('hidden');
+                    msgEl.classList.add('error');
+                }
+                return;
+            }
+
+            const adminPassword = document.getElementById('addOwnerAdminPassword').value;
+            if (!adminPassword) {
+                if (msgEl) { msgEl.textContent = 'Please enter admin password.'; msgEl.classList.remove('hidden'); msgEl.classList.add('error'); }
+                return;
+            }
+
+            verifyAdminPassword(adminPassword)
+                .then(success => {
+                    if (success) {
+                        const formData = new FormData(document.getElementById('addOwnerForm'));
+                        saveAddOwnerBtn.disabled = true;
+                        fetch('ajax/add_owner.php', { method: 'POST', body: formData })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    alert('Owner added successfully!');
+                                    document.getElementById('addOwnerModal').style.display = 'none';
+                                    location.reload();
+                                } else {
+                                    if (msgEl) { msgEl.textContent = data.message || 'Failed to add owner.'; msgEl.classList.remove('hidden'); msgEl.classList.add('error'); }
+                                    saveAddOwnerBtn.disabled = false;
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                if (msgEl) { msgEl.textContent = 'Failed to add owner.'; msgEl.classList.remove('hidden'); msgEl.classList.add('error'); }
+                                saveAddOwnerBtn.disabled = false;
                             });
                     }
                 });

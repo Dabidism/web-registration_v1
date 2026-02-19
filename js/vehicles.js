@@ -214,11 +214,56 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Save Add
+    // Save Add (with client-side validation and single inline message)
     const saveAddBtn = document.getElementById('saveAdd');
     if (saveAddBtn) {
         saveAddBtn.addEventListener('click', function () {
-            handleFormSubmit('addForm', 'addVehicleAdminPassword', 'ajax/add_vehicle.php', 'addModal', 'Vehicle added successfully!');
+            const msgEl = document.getElementById('addVehicleMessage');
+            const successEl = document.getElementById('addVehicleSuccessMsg');
+            if (msgEl) { msgEl.classList.add('hidden'); msgEl.className = 'form-message hidden'; }
+            if (successEl) successEl.classList.add('hidden');
+
+            const form = document.getElementById('addForm');
+            const ownerID = document.getElementById('addOwnerID')?.value?.trim();
+            const plateNum = document.getElementById('addPlateNum')?.value?.trim();
+            const vehicleType = document.getElementById('addVehicleType')?.value?.trim();
+            const model = document.getElementById('addModel')?.value?.trim();
+            const manufacturer = document.getElementById('addManufacturer')?.value?.trim();
+            const color = document.getElementById('addColor')?.value?.trim();
+            const numOfWheels = document.getElementById('addNumWheels')?.value;
+            const fuelType = document.getElementById('addFuelType')?.value?.trim();
+            const adminPassword = document.getElementById('addVehicleAdminPassword')?.value?.trim();
+
+            const missing = [];
+            if (!ownerID) missing.push('Owner');
+            if (!plateNum) missing.push('Plate Number');
+            if (!vehicleType) missing.push('Vehicle Type');
+            if (!model) missing.push('Model');
+            if (!manufacturer) missing.push('Manufacturer');
+            if (!color) missing.push('Color');
+            if (!numOfWheels || numOfWheels === '') missing.push('Number of Wheels');
+            if (!fuelType) missing.push('Fuel Type');
+            if (!adminPassword) missing.push('Admin Password');
+
+            if (missing.length > 0) {
+                if (msgEl) {
+                    msgEl.textContent = 'Please fill in all required fields: ' + missing.join(', ');
+                    msgEl.classList.add('error');
+                    msgEl.classList.remove('hidden');
+                }
+                return;
+            }
+
+            // Re-enable locked/disabled fields so FormData includes their values
+            const numWheelsEl = document.getElementById('addNumWheels');
+            const cubicCapEl = document.getElementById('addCubicCapacity');
+            const numWheelsInputEl = document.getElementById('addNumWheelsInput');
+            if (numWheelsEl && numWheelsEl.disabled) numWheelsEl.disabled = false;
+            if (cubicCapEl && cubicCapEl.disabled) cubicCapEl.disabled = false;
+            if (numWheelsInputEl && numWheelsInputEl.disabled && !numWheelsInputEl.classList.contains('hidden')) numWheelsInputEl.disabled = false;
+
+            saveAddBtn.disabled = true;
+            handleFormSubmit('addForm', 'addVehicleAdminPassword', 'ajax/add_vehicle.php', 'addModal', 'Vehicle added successfully!', true, saveAddBtn);
         });
     }
 
@@ -278,12 +323,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// Helper Function for Form Submits
-function handleFormSubmit(formId, passwordId, url, modalId, successMsg) {
+// Helper Function for Form Submits (addVehicleInline: show success in modal and reload after delay)
+function handleFormSubmit(formId, passwordId, url, modalId, successMsg, addVehicleInline, addBtnEl) {
     const adminPassword = document.getElementById(passwordId).value;
 
-    if (!adminPassword) {
+    if (!adminPassword && !addVehicleInline) {
         alert('Please enter your admin password');
+        if (addBtnEl) addBtnEl.disabled = false;
         return;
     }
 
@@ -297,20 +343,48 @@ function handleFormSubmit(formId, passwordId, url, modalId, successMsg) {
                 })
                     .then(response => response.json())
                     .then(data => {
+                        const msgEl = document.getElementById('addVehicleMessage');
+                        const successEl = document.getElementById('addVehicleSuccessMsg');
                         if (data.success) {
-                            alert(successMsg);
-                            document.getElementById(modalId).style.display = 'none';
-                            location.reload();
+                            if (addVehicleInline && successEl && msgEl) {
+                                msgEl.classList.add('hidden');
+                                successEl.classList.remove('hidden');
+                                setTimeout(function () {
+                                    document.getElementById(modalId).style.display = 'none';
+                                    location.reload();
+                                }, 1500);
+                            } else {
+                                alert(successMsg);
+                                document.getElementById(modalId).style.display = 'none';
+                                location.reload();
+                            }
                         } else {
-                            alert('Error: ' + data.message);
+                            if (addVehicleInline && msgEl) {
+                                msgEl.textContent = data.message || 'An error occurred.';
+                                msgEl.className = 'form-message error';
+                                msgEl.classList.remove('hidden');
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                            if (addBtnEl) addBtnEl.disabled = false;
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Failed to process request');
+                        if (addVehicleInline && document.getElementById('addVehicleMessage')) {
+                            document.getElementById('addVehicleMessage').textContent = 'Failed to process request.';
+                            document.getElementById('addVehicleMessage').className = 'form-message error';
+                            document.getElementById('addVehicleMessage').classList.remove('hidden');
+                        } else {
+                            alert('Failed to process request');
+                        }
+                        if (addBtnEl) addBtnEl.disabled = false;
                     });
+            } else {
+                if (addBtnEl) addBtnEl.disabled = false;
             }
-        });
+        })
+        .catch(() => { if (addBtnEl) addBtnEl.disabled = false; });
 }
 
 function verifyAdminPassword(password) {

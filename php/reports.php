@@ -125,6 +125,7 @@ include_once '../includes/header.php';
               <th>Violation</th>
               <th>Status</th>
               <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="violationResultsBody">
@@ -160,7 +161,8 @@ include_once '../includes/header.php';
     <h4>Generate Report</h4>
     <div class="period-selection">
       <label>Select Time Period:</label>
-      <select id="reportPeriod">
+      <select id="reportPeriod" required>
+        <option value="">-- Select Report Period --</option>
         <option value="day">Last 24 Hours</option>
         <option value="week">Last 7 Days</option>
         <option value="month">Last 30 Days</option>
