@@ -12,7 +12,7 @@ require_once 'dbConnection.php';
   <link rel="stylesheet" href="../css/registration.css" />
   <link rel="stylesheet" href="../css/responsive.css" />
   <script src="../js/responsive.js"></script>
-  <script src="../js/registration.js" defer></script>
+  <script src="../js/registration.js?v=2" defer></script>
 </head>
 
 <body>
@@ -149,7 +149,7 @@ require_once 'dbConnection.php';
           <div class="upload-area">
             Drag and drop files here or
             <span class="browse">click to browse</span>
-            <input type="file" name="driversLicense" accept="image/*,application/pdf" class="hidden" required />
+            <input type="file" name="driversLicense" accept="image/*,application/pdf" class="hidden" />
           </div>
         </div>
       </section>
@@ -261,7 +261,7 @@ require_once 'dbConnection.php';
             <div class="upload-area">
               Drag and drop files here or
               <span class="browse">click to browse</span>
-              <input type="file" name="officialReceipt[]" accept="image/*,application/pdf" class="hidden" required />
+              <input type="file" name="officialReceipt[]" accept="image/*,application/pdf" class="hidden" />
             </div>
           </div>
 
@@ -270,7 +270,7 @@ require_once 'dbConnection.php';
             <div class="upload-area">
               Drag and drop files here or
               <span class="browse">click to browse</span>
-              <input type="file" name="certRegistration[]" accept="image/*,application/pdf" class="hidden" required />
+              <input type="file" name="certRegistration[]" accept="image/*,application/pdf" class="hidden" />
             </div>
           </div>
         </section>
@@ -285,7 +285,7 @@ require_once 'dbConnection.php';
         <span class="required-asterisk">*</span>
       </div>
       <div class="button-row">
-        <button type="submit" class="submit-btn">Submit Application</button>
+        <button type="submit" class="submit-btn" id="submitBtn" disabled>Submit Application</button>
       </div>
     </form>
   </div>

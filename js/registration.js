@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (academicYearField) academicYearField.style.display = 'none';
                 if (yearLevelField) yearLevelField.style.display = 'none';
                 if (sectionField) sectionField.style.display = 'none';
-                if (employmentTypeField) employmentTypeField.style.display = 'block';
+                if (employmentTypeField) employmentTypeField.classList.remove('hidden');
 
                 const courseSelect = document.querySelector('select[name="course"]');
                 const academicYearSelect = document.querySelector('select[name="academicYear"]');
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (academicYearField) academicYearField.style.display = 'block';
                 if (yearLevelField) yearLevelField.style.display = 'block';
                 if (sectionField) sectionField.style.display = 'block';
-                if (employmentTypeField) employmentTypeField.style.display = 'none';
+                if (employmentTypeField) employmentTypeField.classList.add('hidden');
 
                 const courseSelect = document.querySelector('select[name="course"]');
                 const academicYearSelect = document.querySelector('select[name="academicYear"]');
@@ -439,6 +439,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (termsAcceptedIcon) {
                 termsAcceptedIcon.classList.remove('hidden');
                 termsAcceptedIcon.style.display = 'inline-flex';
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
             }
 
             closeTermsModal();

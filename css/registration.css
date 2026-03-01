@@ -320,6 +320,13 @@ select {
   cursor: pointer;
   margin-left: auto;
   display: block;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.submit-btn:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Animation for removing vehicle section */
@@ -602,6 +609,15 @@ label {
   font-size: 14px;
   opacity: 0;
   transition: opacity 0.2s;
+}
+
+.modal-terms-checkbox:checked {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.modal-terms-checkbox:checked+.checkmark {
+  opacity: 1;
 }
 
 .terms-text {
