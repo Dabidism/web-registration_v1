@@ -125,7 +125,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const type = row.getAttribute('data-type');
 
             const matchesSearch = text.includes(searchValue);
-            const matchesFilter = activeFilter === 'registered vehicle' ? type === 'registered' : type === 'visitor';
+            let matchesFilter = true;
+            if (activeFilter === 'registered vehicle') matchesFilter = (type === 'registered');
+            else if (activeFilter === 'visitor') matchesFilter = (type === 'visitor');
 
             row.style.display = matchesSearch && matchesFilter ? '' : 'none';
         });

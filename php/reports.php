@@ -16,8 +16,11 @@ $db = new Database();
 $conn = $db->getConnection();
 
 // Get statistics
-$totalEntries = $conn->query("SELECT COUNT(*) as count FROM entryexitlog")->fetch_assoc()['count'] ?? 0;
-$totalVisitors = $conn->query("SELECT COUNT(DISTINCT visitorID) as count FROM visitor")->fetch_assoc()['count'] ?? 0;
+$totalEntriesLog = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE MONTH(entryTime) = MONTH(CURRENT_DATE()) AND YEAR(entryTime) = YEAR(CURRENT_DATE())")->fetch_assoc()['count'] ?? 0;
+$totalEntriesVis = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE MONTH(entryTime) = MONTH(CURRENT_DATE()) AND YEAR(entryTime) = YEAR(CURRENT_DATE())")->fetch_assoc()['count'] ?? 0;
+$totalEntries = $totalEntriesLog + $totalEntriesVis;
+
+$totalVisitors = $conn->query("SELECT COUNT(DISTINCT visitorID) as count FROM visitor WHERE MONTH(entryTime) = MONTH(CURRENT_DATE()) AND YEAR(entryTime) = YEAR(CURRENT_DATE())")->fetch_assoc()['count'] ?? 0;
 $totalVehicles = $conn->query("SELECT COUNT(*) as count FROM vehicle")->fetch_assoc()['count'] ?? 0;
 $totalApplications = $conn->query("SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'pending'")->fetch_assoc()['count'] ?? 0;
 
@@ -75,7 +78,7 @@ include_once '../includes/header.php';
     <div class="card-flex">
       <div>
         <h3>Total Entries</h3>
-        <p>All Gates Combined</p>
+        <p>This month</p>
         <br />
         <strong class="card-num"><?php echo number_format($totalEntries); ?></strong>
       </div>

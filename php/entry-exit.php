@@ -17,39 +17,80 @@ $conn = $db->getConnection();
 // Date filter (optional)
 $fromDate = isset($_GET['fromDate']) ? $_GET['fromDate'] : '';
 $toDate = isset($_GET['toDate']) ? $_GET['toDate'] : '';
-$whereClause = '';
-$params = [];
+$whereEel = '';
+$whereVis = '';
+$paramsEel = [];
+$paramsVis = [];
 $types = '';
+
 if ($fromDate !== '' && $toDate !== '') {
-    $whereClause = " WHERE DATE(eel.entryTime) BETWEEN ? AND ?";
-    $params = [$fromDate, $toDate];
+    $whereEel = " WHERE DATE(eel.entryTime) BETWEEN ? AND ?";
+    $whereVis = " WHERE DATE(entryTime) BETWEEN ? AND ?";
+    $paramsEel = [$fromDate, $toDate];
+    $paramsVis = [$fromDate, $toDate];
     $types = 'ss';
 } elseif ($fromDate !== '') {
-    $whereClause = " WHERE DATE(eel.entryTime) >= ?";
-    $params = [$fromDate];
+    $whereEel = " WHERE DATE(eel.entryTime) >= ?";
+    $whereVis = " WHERE DATE(entryTime) >= ?";
+    $paramsEel = [$fromDate];
+    $paramsVis = [$fromDate];
     $types = 's';
 } elseif ($toDate !== '') {
-    $whereClause = " WHERE DATE(eel.entryTime) <= ?";
-    $params = [$toDate];
+    $whereEel = " WHERE DATE(eel.entryTime) <= ?";
+    $whereVis = " WHERE DATE(entryTime) <= ?";
+    $paramsEel = [$toDate];
+    $paramsVis = [$toDate];
     $types = 's';
 }
 
-$query = "SELECT eel.*, v.plateNum, vo.fName, vo.lName, vo.role, v.stickerID
+$allLogs = [];
+
+// 1. Get Registered Vehicle Logs
+$queryEel = "SELECT CONCAT(vo.fName, ' ', vo.lName) AS fullName, vo.role, eel.gateLocation, eel.plateNum, eel.entryTime, eel.exitTime, eel.status, 'registered' AS logType 
           FROM entryexitlog eel 
           LEFT JOIN vehicle v ON eel.plateNum = v.plateNum 
           LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID 
-          $whereClause
-          ORDER BY eel.entryTime DESC";
-if ($params) {
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param($types, ...$params);
-    $stmt->execute();
-    $result = $stmt->get_result();
+          $whereEel";
+
+if ($paramsEel) {
+    $stmt1 = $conn->prepare($queryEel);
+    $stmt1->bind_param($types, ...$paramsEel);
+    $stmt1->execute();
+    $res1 = $stmt1->get_result();
 } else {
-    $result = $conn->query($query);
+    $res1 = $conn->query($queryEel);
 }
-if (!$result)
-  $result = (object) ['num_rows' => 0];
+
+if ($res1 && $res1->num_rows > 0) {
+    while($row = $res1->fetch_assoc()) {
+        $allLogs[] = $row;
+    }
+}
+
+// 2. Get Visitor Logs
+$queryVis = "SELECT fullName, 'Visitor' AS role, gateLocation, plateNum, entryTime, exitTime, status, 'visitor' AS logType
+          FROM visitor 
+          $whereVis";
+          
+if ($paramsVis) {
+    $stmt2 = $conn->prepare($queryVis);
+    $stmt2->bind_param($types, ...$paramsVis);
+    $stmt2->execute();
+    $res2 = $stmt2->get_result();
+} else {
+    $res2 = $conn->query($queryVis);
+}
+
+if ($res2 && $res2->num_rows > 0) {
+    while($row = $res2->fetch_assoc()) {
+        $allLogs[] = $row;
+    }
+}
+
+// Sort the combined array by entryTime DESC
+usort($allLogs, function($a, $b) {
+    return strtotime($b['entryTime'] ?? 0) - strtotime($a['entryTime'] ?? 0);
+});
 
 include_once '../includes/header.php';
 ?>
@@ -63,7 +104,7 @@ include_once '../includes/header.php';
       <div class="search-area">
         <div class="search-icon"></div>
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="Search by name, plate number, or sticker ID" />
+          <input type="text" id="searchInput" placeholder="Search by name, plate number, or location" />
           <button class="search-btn" type="submit" title="Search">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -83,7 +124,8 @@ include_once '../includes/header.php';
       <div class="traffic-btn-group">
         <div class="traffic-btn-box">
           <div class="traffic-btn-slider"></div>
-          <button class="traffic-btn active">Registered Vehicle</button>
+          <button class="traffic-btn active">All</button>
+          <button class="traffic-btn">Registered Vehicle</button>
           <button class="traffic-btn">Visitor</button>
         </div>
       </div>
@@ -96,7 +138,7 @@ include_once '../includes/header.php';
       <tr>
         <th>Full Name</th>
         <th>Role</th>
-        <th>Sticker ID</th>
+        <th>Gate Location</th>
         <th>Plate Number</th>
         <th>Entry Time</th>
         <th>Exit Time</th>
@@ -104,12 +146,12 @@ include_once '../includes/header.php';
       </tr>
     </thead>
     <tbody id="logsTableBody">
-      <?php if ($result && $result->num_rows > 0): ?>
-        <?php while ($row = $result->fetch_assoc()): ?>
-          <tr data-type="<?php echo ($row['stickerID'] && $row['stickerID'] !== 'N/A') ? 'registered' : 'visitor'; ?>">
-            <td><?php echo htmlspecialchars(($row['fName'] ?? '') . ' ' . ($row['lName'] ?? '')); ?></td>
+      <?php if (!empty($allLogs)): ?>
+        <?php foreach ($allLogs as $row): ?>
+          <tr data-type="<?php echo $row['logType']; ?>">
+            <td><?php echo htmlspecialchars($row['fullName'] ?? ''); ?></td>
             <td>
-              <?php if (!empty($row['role'])): ?>
+              <?php if (!empty($row['role']) && $row['role'] !== 'Visitor'): ?>
                 <span class="role-badge role-<?php echo strtolower($row['role']); ?>">
                   <?php echo htmlspecialchars(ucfirst($row['role'])); ?>
                 </span>
@@ -117,13 +159,13 @@ include_once '../includes/header.php';
                 <span class="role-badge role-visitor">Visitor</span>
               <?php endif; ?>
             </td>
-            <td><?php echo htmlspecialchars($row['stickerID'] ?? 'N/A'); ?></td>
-            <td><?php echo htmlspecialchars($row['plateNum']); ?></td>
-            <td><?php echo $row['entryTime'] ? date('Y-m-d h:i A', strtotime($row['entryTime'])) : '-'; ?></td>
-            <td><?php echo $row['exitTime'] ? date('Y-m-d h:i A', strtotime($row['exitTime'])) : '-'; ?></td>
+            <td><?php echo htmlspecialchars($row['gateLocation'] ?? 'N/A'); ?></td>
+            <td><?php echo htmlspecialchars($row['plateNum'] ?? ''); ?></td>
+            <td><?php echo !empty($row['entryTime']) ? date('Y-m-d h:i A', strtotime($row['entryTime'])) : '-'; ?></td>
+            <td><?php echo !empty($row['exitTime']) ? date('Y-m-d h:i A', strtotime($row['exitTime'])) : '-'; ?></td>
             <td><?php echo $row['status'] == 'exited' ? 'OUT' : ($row['status'] == 'entered' ? 'IN' : 'Denied'); ?></td>
           </tr>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       <?php else: ?>
         <tr>
           <td colspan="7">No entry/exit logs found</td>

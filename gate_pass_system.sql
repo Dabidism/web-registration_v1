@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 01, 2026 at 12:41 PM
+-- Generation Time: Mar 01, 2026 at 01:25 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -284,8 +284,6 @@ INSERT INTO `rfidtag` (`stickerID`, `rfidCode`, `issuedAt`, `status`, `expiratio
 CREATE TABLE `temporaryvehiclepass` (
   `passID` varchar(10) NOT NULL,
   `visitorID` varchar(10) DEFAULT NULL,
-  `issueDate` date DEFAULT NULL,
-  `expiryDate` date DEFAULT NULL,
   `status` enum('active','expired') DEFAULT 'active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -293,12 +291,12 @@ CREATE TABLE `temporaryvehiclepass` (
 -- Dumping data for table `temporaryvehiclepass`
 --
 
-INSERT INTO `temporaryvehiclepass` (`passID`, `visitorID`, `issueDate`, `expiryDate`, `status`) VALUES
-('TVP-001', NULL, '2026-03-01', '2026-03-02', 'active'),
-('TVP-002', NULL, '2026-03-01', '2026-03-02', 'active'),
-('TVP-003', NULL, '2026-03-01', '2026-03-02', 'active'),
-('TVP-004', NULL, '2026-03-01', '2026-03-02', 'active'),
-('TVP-005', NULL, '2026-03-01', '2026-03-02', 'active');
+INSERT INTO `temporaryvehiclepass` (`passID`, `visitorID`, `status`) VALUES
+('TVP-001', NULL, 'active'),
+('TVP-002', 'VIS-002', 'active'),
+('TVP-003', NULL, 'active'),
+('TVP-004', 'VIS-004', 'active'),
+('TVP-005', NULL, 'active');
 
 -- --------------------------------------------------------
 
@@ -354,11 +352,11 @@ INSERT INTO `vehicle` (`plateNum`, `OwnerID`, `stickerID`, `visitorID`, `vehicle
 ('DBA4658', 'A014', NULL, NULL, 'Motorcycle', 'PG-1', 'Toyota', 'Brown', 6000, 2, 'Gasoline', 'OR_upload/A001_DBA 4658_OR.jpg', 'CR_upload/A001_DBA 4658_CR.jpg', NULL),
 ('NBC1234', 'A013', NULL, NULL, 'Motorcycle', 'CF 152', 'Keeway', 'Black', 6000, 2, 'Gasoline', 'OR_upload/A001_NAT 0921_OR.jpg', 'CR_upload/A001_NAT 0921_CR.jpg', NULL),
 ('NBC5678', 'A018', NULL, NULL, 'Motorcycle', 'Y', 'Tesla', 'black', 450, 2, 'Hybrid', 'OR_upload/A001_NBC5678_OR.jpg', 'CR_upload/A001_NBC5678_CR.jpg', NULL),
-('VIS101', NULL, NULL, 'V101', 'Car', 'Mirage', 'Mitsubishi', 'Gray', 1200, 4, 'Gasoline', 'OR_upload/VIS101_OR.png', 'CR_upload/VIS101_CR.png', NULL),
-('VIS102', NULL, NULL, 'V102', 'Van', 'Hiace', 'Toyota', 'White', 2800, 4, 'Diesel', 'OR_upload/VIS102_OR.png', 'CR_upload/VIS102_CR.png', NULL),
-('VIS103', NULL, NULL, 'V103', 'Car', 'Accent', 'Hyundai', 'Blue', 1400, 4, 'Diesel', 'OR_upload/VIS103_OR.png', 'CR_upload/VIS103_CR.png', NULL),
-('VIS104', NULL, NULL, 'V104', 'Motorcycle', 'PCX', 'Honda', 'Matte Black', 160, 2, 'Gasoline', 'OR_upload/VIS104_OR.png', 'CR_upload/VIS104_CR.png', NULL),
-('VIS105', NULL, NULL, 'V105', 'Car', 'CX-5', 'Mazda', 'Red', 2500, 4, 'Gasoline', 'OR_upload/VIS105_OR.png', 'CR_upload/VIS105_CR.png', NULL);
+('VIS101', NULL, NULL, NULL, 'Car', 'Mirage', 'Mitsubishi', 'Gray', 1200, 4, 'Gasoline', 'OR_upload/VIS101_OR.png', 'CR_upload/VIS101_CR.png', NULL),
+('VIS102', NULL, NULL, NULL, 'Van', 'Hiace', 'Toyota', 'White', 2800, 4, 'Diesel', 'OR_upload/VIS102_OR.png', 'CR_upload/VIS102_CR.png', NULL),
+('VIS103', NULL, NULL, NULL, 'Car', 'Accent', 'Hyundai', 'Blue', 1400, 4, 'Diesel', 'OR_upload/VIS103_OR.png', 'CR_upload/VIS103_CR.png', NULL),
+('VIS104', NULL, NULL, NULL, 'Motorcycle', 'PCX', 'Honda', 'Matte Black', 160, 2, 'Gasoline', 'OR_upload/VIS104_OR.png', 'CR_upload/VIS104_CR.png', NULL),
+('VIS105', NULL, NULL, NULL, 'Car', 'CX-5', 'Mazda', 'Red', 2500, 4, 'Gasoline', 'OR_upload/VIS105_OR.png', 'CR_upload/VIS105_CR.png', NULL);
 
 -- --------------------------------------------------------
 
@@ -404,8 +402,6 @@ INSERT INTO `vehicleowner` (`OwnerID`, `fName`, `lName`, `mName`, `role`, `emplo
 CREATE TABLE `vehiclepass` (
   `passID` varchar(20) NOT NULL,
   `plateNum` varchar(20) DEFAULT NULL,
-  `issueDate` date DEFAULT NULL,
-  `expiryDate` date DEFAULT NULL,
   `status` enum('active','expired','available','unavailable') DEFAULT 'available',
   `issuedBy` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -414,12 +410,12 @@ CREATE TABLE `vehiclepass` (
 -- Dumping data for table `vehiclepass`
 --
 
-INSERT INTO `vehiclepass` (`passID`, `plateNum`, `issueDate`, `expiryDate`, `status`, `issuedBy`) VALUES
-('VP-001', NULL, '2026-03-01', '2027-03-01', 'available', 'admin'),
-('VP-002', NULL, '2026-03-01', '2027-03-01', 'available', NULL),
-('VP-003', NULL, '2026-03-01', '2027-03-01', 'available', NULL),
-('VP-004', NULL, '2026-03-01', '2027-03-01', 'available', NULL),
-('VP-005', NULL, '2026-03-01', '2027-03-01', 'available', NULL);
+INSERT INTO `vehiclepass` (`passID`, `plateNum`, `status`, `issuedBy`) VALUES
+('VP-001', NULL, 'available', 'admin'),
+('VP-002', NULL, 'available', NULL),
+('VP-003', NULL, 'available', NULL),
+('VP-004', NULL, 'available', NULL),
+('VP-005', NULL, 'available', NULL);
 
 -- --------------------------------------------------------
 
@@ -455,24 +451,20 @@ CREATE TABLE `visitor` (
   `purposeOfVisit` text DEFAULT NULL,
   `entryTime` datetime DEFAULT NULL,
   `exitTime` datetime DEFAULT NULL,
-  `status` enum('entered','exited','denied') DEFAULT NULL
+  `status` enum('entered','exited','denied') DEFAULT NULL,
+  `gateLocation` enum('Old Site','New Site') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `visitor`
 --
 
-INSERT INTO `visitor` (`visitorID`, `passID`, `fullName`, `plateNum`, `purposeOfVisit`, `entryTime`, `exitTime`, `status`) VALUES
-('V101', NULL, 'Visitor One', 'VIS101', 'Meeting with Registrar', NULL, NULL, NULL),
-('V102', NULL, 'Visitor Two', 'VIS102', 'Deliver supplies', NULL, NULL, NULL),
-('V103', NULL, 'Visitor Three', 'VIS103', 'Seminar guest speaker', NULL, NULL, NULL),
-('V104', NULL, 'Visitor Four', 'VIS104', 'Parent of student', NULL, NULL, NULL),
-('V105', NULL, 'Visitor Five', 'VIS105', 'Attend conference', NULL, NULL, NULL),
-('V106', NULL, 'Visitor Six', 'VIS106', 'Maintenance check', NULL, NULL, NULL),
-('V107', NULL, 'Visitor Seven', 'VIS107', 'Interview', NULL, NULL, NULL),
-('V108', NULL, 'Visitor Eight', 'VIS108', 'Alumni visit', NULL, NULL, NULL),
-('V109', NULL, 'Visitor Nine', 'VIS109', 'Pick up document', NULL, NULL, NULL),
-('V110', NULL, 'Visitor Ten', 'VIS110', 'Food delivery', NULL, NULL, NULL);
+INSERT INTO `visitor` (`visitorID`, `passID`, `fullName`, `plateNum`, `purposeOfVisit`, `entryTime`, `exitTime`, `status`, `gateLocation`) VALUES
+('VIS-001', 'TVP-001', 'John Doe', 'ABC-123', 'Meeting with Dean', '2026-01-14 17:49:49', '2026-01-14 18:49:49', 'exited', 'New Site'),
+('VIS-002', 'TVP-002', 'Jane Smith', 'XYZ-789', 'Delivery', '2026-03-01 18:49:49', NULL, 'entered', 'Old Site'),
+('VIS-003', 'TVP-003', 'Michael Johnson', 'LMN-456', 'Inquiry', '2026-03-01 16:49:49', '2026-03-01 17:49:49', 'exited', 'New Site'),
+('VIS-004', 'TVP-004', 'Emily Davis', 'QRS-012', 'Event Attendance', '2026-03-01 19:19:49', NULL, 'entered', 'Old Site'),
+('VIS-005', 'TVP-005', 'Robert Wilson', 'DEF-345', 'Repair Service', '2026-03-01 19:49:49', '2026-03-01 19:49:49', 'denied', 'Old Site');
 
 --
 -- Indexes for dumped tables
