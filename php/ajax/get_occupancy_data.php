@@ -34,21 +34,25 @@ $occupancyByRole = [
 
 // Calculate current occupancy (read-only, no database updates)
 $result = $conn->query("
-    SELECT 
-        CASE 
-            WHEN vo.role = 'student' THEN 'students'
-            WHEN vo.role = 'faculty' THEN 'faculty'
-            WHEN vo.role IN ('non-teaching', 'staff') THEN 'staff'
-            WHEN v.visitorID IS NOT NULL THEN 'guests'
-            ELSE 'guests'
-        END as role_category,
-        COUNT(*) as count
-    FROM historical_log h
-    JOIN vehicle v ON h.plateNum = v.plateNum
-    LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
-    WHERE h.status = 'entered' 
-        AND h.exitTime IS NULL
-        AND DATE(h.entryTime) = CURDATE()
+    SELECT role_category, COUNT(*) as count FROM (
+        SELECT 
+            CASE 
+                WHEN vo.role = 'student' THEN 'students'
+                WHEN vo.role = 'faculty' THEN 'faculty'
+                WHEN vo.role IN ('non-teaching', 'staff') THEN 'staff'
+                ELSE 'guests'
+            END as role_category
+        FROM entryexitlog e
+        JOIN vehicle v ON e.plateNum = v.plateNum
+        LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
+        WHERE e.status = 'entered'
+        
+        UNION ALL
+        
+        SELECT 'guests' as role_category
+        FROM visitor
+        WHERE status = 'entered'
+    ) as combined_occupancy
     GROUP BY role_category
 ");
 

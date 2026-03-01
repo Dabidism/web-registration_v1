@@ -54,21 +54,25 @@ $occupancyByRole = [
 
 // Calculate current occupancy (read-only, no database updates)
 $result = $conn->query("
-    SELECT 
-        CASE 
-            WHEN vo.role = 'student' THEN 'students'
-            WHEN vo.role = 'faculty' THEN 'faculty'
-            WHEN vo.role IN ('non-teaching', 'staff') THEN 'staff'
-            WHEN v.visitorID IS NOT NULL THEN 'guests'
-            ELSE 'guests'
-        END as role_category,
-        COUNT(*) as count
-    FROM historical_log h
-    JOIN vehicle v ON h.plateNum = v.plateNum
-    LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
-    WHERE h.status = 'entered' 
-        AND h.exitTime IS NULL
-        AND DATE(h.entryTime) = CURDATE()
+    SELECT role_category, COUNT(*) as count FROM (
+        SELECT 
+            CASE 
+                WHEN vo.role = 'student' THEN 'students'
+                WHEN vo.role = 'faculty' THEN 'faculty'
+                WHEN vo.role IN ('non-teaching', 'staff') THEN 'staff'
+                ELSE 'guests'
+            END as role_category
+        FROM entryexitlog e
+        JOIN vehicle v ON e.plateNum = v.plateNum
+        LEFT JOIN vehicleowner vo ON v.OwnerID = vo.OwnerID
+        WHERE e.status = 'entered'
+        
+        UNION ALL
+        
+        SELECT 'guests' as role_category
+        FROM visitor
+        WHERE status = 'entered'
+    ) as combined_occupancy
     GROUP BY role_category
 ");
 
@@ -113,20 +117,20 @@ if ($result) {
   }
 }
 
-// Get today's entries count from entryexitlog and visitorlog
+// Get today's entries count from entryexitlog and visitor
 $today = date('Y-m-d');
 $result1 = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE DATE(entryTime) = '$today'");
-$result2 = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$today'");
+$result2 = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE DATE(entryTime) = '$today'");
 $count1 = $result1 ? $result1->fetch_assoc()['count'] : 0;
 $count2 = $result2 ? $result2->fetch_assoc()['count'] : 0;
 $stats['todays_entries'] = $count1 + $count2;
 
-// Get daily entries for the past week from entryexitlog and visitorlog
+// Get daily entries for the past week from entryexitlog and visitor
 $dailyEntries = [];
 for ($i = 6; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $result1 = $conn->query("SELECT COUNT(*) as count FROM entryexitlog WHERE DATE(entryTime) = '$date'");
-  $result2 = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$date'");
+  $result2 = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE DATE(entryTime) = '$date'");
   $count1 = $result1 ? $result1->fetch_assoc()['count'] : 0;
   $count2 = $result2 ? $result2->fetch_assoc()['count'] : 0;
   $dailyEntries[] = ['date' => $date, 'count' => $count1 + $count2];
@@ -169,7 +173,7 @@ for ($hour = 6; $hour <= 20; $hour++) {
   $hourFormatted = sprintf('%02d:00:00', $hour);
   $fullHour = $today . ' ' . $hourFormatted;
   $hourLabel = sprintf('%02d:00', $hour);
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE_FORMAT(entryTime, '%Y-%m-%d %H:00:00') = '$fullHour'");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE DATE_FORMAT(entryTime, '%Y-%m-%d %H:00:00') = '$fullHour'");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $dayVisitorTraffic[] = ['label' => $hourLabel, 'entries' => $entries];
 }
@@ -178,7 +182,7 @@ $weekVisitorTraffic = [];
 for ($i = 6; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $dayLabel = date('D', strtotime("-$i days"));
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$date'");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE DATE(entryTime) = '$date'");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $weekVisitorTraffic[] = ['label' => $dayLabel, 'entries' => $entries];
 }
@@ -187,7 +191,7 @@ $monthVisitorTraffic = [];
 for ($i = 29; $i >= 0; $i--) {
   $date = date('Y-m-d', strtotime("-$i days"));
   $dayLabel = date('M j', strtotime("-$i days"));
-  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitorlog WHERE DATE(entryTime) = '$date'");
+  $entriesResult = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE DATE(entryTime) = '$date'");
   $entries = $entriesResult ? $entriesResult->fetch_assoc()['count'] : 0;
   $monthVisitorTraffic[] = ['label' => $dayLabel, 'entries' => $entries];
 }
