@@ -27,23 +27,32 @@ try {
 
     $conn->begin_transaction();
 
-    // Get the stickerID before removing it
-    $getSticker = $conn->prepare("SELECT stickerID FROM vehicle WHERE plateNum = ?");
-    $getSticker->bind_param("s", $plateNum);
-    $getSticker->execute();
-    $stickerResult = $getSticker->get_result();
-    $stickerID = $stickerResult->fetch_assoc()['stickerID'] ?? null;
+    // Get the stickerID and carpassid before removing them
+    $getAccess = $conn->prepare("SELECT stickerID, carpassid FROM vehicle WHERE plateNum = ?");
+    $getAccess->bind_param("s", $plateNum);
+    $getAccess->execute();
+    $accessResult = $getAccess->get_result();
+    $accessData = $accessResult->fetch_assoc();
+    $stickerID = $accessData['stickerID'] ?? null;
+    $carPassID = $accessData['carpassid'] ?? null;
 
     // Update vehicle to remove RFID and car pass
     $stmt = $conn->prepare("UPDATE vehicle SET stickerID = NULL, carpassid = NULL WHERE plateNum = ?");
     $stmt->bind_param("s", $plateNum);
     $stmt->execute();
 
-    // Set RFID status back to inactive if it exists
+    // Set RFID status back to available if it exists
     if ($stickerID) {
-        $updateRfid = $conn->prepare("UPDATE rfidtag SET status = 'inactive' WHERE stickerID = ?");
+        $updateRfid = $conn->prepare("UPDATE rfidtag SET status = 'available' WHERE stickerID = ?");
         $updateRfid->bind_param("s", $stickerID);
         $updateRfid->execute();
+    }
+
+    // Set Vehicle Pass status back to available if it exists
+    if ($carPassID) {
+        $updatePass = $conn->prepare("UPDATE vehiclepass SET status = 'available' WHERE passID = ?");
+        $updatePass->bind_param("s", $carPassID);
+        $updatePass->execute();
     }
 
     $conn->commit();

@@ -8,7 +8,7 @@ try {
     $conn = $db->getConnection();
 
     // Get all available RFID tags from rfidtag table with full details
-    $query = "SELECT stickerID, tagCode FROM rfidtag WHERE status = 'available' ORDER BY stickerID";
+    $query = "SELECT stickerID, rfidCode FROM rfidtag WHERE status = 'available' ORDER BY stickerID";
     $result = $conn->query($query);
 
     $availableRfid = [];
@@ -16,7 +16,7 @@ try {
         while ($row = $result->fetch_assoc()) {
             $availableRfid[] = [
                 'stickerID' => $row['stickerID'],
-                'tagCode' => $row['tagCode'] ?? 'Not scanned'
+                'tagCode' => $row['rfidCode'] ?? 'Not scanned'
             ];
         }
     }

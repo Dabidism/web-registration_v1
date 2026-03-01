@@ -10,6 +10,9 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'dbConnection.php';
 
+// Set timezone
+date_default_timezone_set('Asia/Manila');
+
 $input = json_decode(file_get_contents('php://input'), true);
 $period = $input['period'] ?? 'day';
 $customDate = $input['customDate'] ?? '';
@@ -165,9 +168,7 @@ if ($roleResult && $roleResult->num_rows > 0) {
     $content .= "<tr><td colspan='2' style='padding: 8px; border: 1px solid #ddd; text-align: center;'>No data available</td></tr>";
 }
 
-$content .= "</table>
-<p style='font-size: 12px; color: #666;'>Report Generated: " . date('n/j/Y g:i:s A') . "</p>
-";
+$content .= "</table>";
 
 $db->closeConnection();
 

@@ -80,10 +80,10 @@ include_once '../includes/header.php';
         </div>
         <div class="filter-container" style="display:flex; align-items:center; gap:8px;">
           <label for="fromDate">From</label>
-          <input type="date" id="fromDate" name="fromDate" value="<?php echo htmlspecialchars($fromDate); ?>">
+          <input type="date" id="fromDate" name="fromDate" value="<?php echo htmlspecialchars($fromDate); ?>" class="date-input">
           <label for="toDate">To</label>
-          <input type="date" id="toDate" name="toDate" value="<?php echo htmlspecialchars($toDate); ?>">
-          <button type="button" id="dateFilterBtn" class="search-btn">Filter</button>
+          <input type="date" id="toDate" name="toDate" value="<?php echo htmlspecialchars($toDate); ?>" class="date-input">
+          <button type="button" id="dateFilterBtn" class="filter-btn">Filter</button>
         </div>
 
       </div>

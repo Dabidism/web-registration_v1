@@ -213,3 +213,38 @@
   z-index: 1;
   box-shadow: 0 2px 8px rgba(45, 108, 223, 0.10);
 }
+
+/* Filter Button and Date Input */
+.filter-btn {
+  background: #f2f5fc;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0 16px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filter-btn:hover {
+  background: #e3f0ff;
+}
+
+.date-input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+.date-input:focus {
+  border-color: #1a73e8;
+}

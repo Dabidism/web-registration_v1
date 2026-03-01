@@ -75,10 +75,10 @@ include_once '../includes/header.php';
       </div>
       <div class="date-filter-area" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
         <label for="fromDate">From</label>
-        <input type="date" id="fromDate" name="fromDate" value="<?php echo htmlspecialchars($fromDate); ?>">
+        <input type="date" id="fromDate" name="fromDate" value="<?php echo htmlspecialchars($fromDate); ?>" class="date-input">
         <label for="toDate">To</label>
-        <input type="date" id="toDate" name="toDate" value="<?php echo htmlspecialchars($toDate); ?>">
-        <button type="button" id="dateFilterBtn" class="search-btn">Filter</button>
+        <input type="date" id="toDate" name="toDate" value="<?php echo htmlspecialchars($toDate); ?>" class="date-input">
+        <button type="button" id="dateFilterBtn" class="filter-btn">Filter</button>
       </div>
       <div class="traffic-btn-group">
         <div class="traffic-btn-box">
@@ -87,10 +87,7 @@ include_once '../includes/header.php';
           <button class="traffic-btn">Visitor</button>
         </div>
       </div>
-      <div class="record-actions" style="display:flex; gap:10px;">
-        <button type="button" id="recordEntryBtn" class="add-btn">Record Entry</button>
-        <button type="button" id="recordExitBtn" class="add-btn">Record Exit</button>
-      </div>
+      
     </div>
   </div>
 

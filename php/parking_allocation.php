@@ -135,50 +135,7 @@ include_once '../includes/header.php';
 <main class="main">
     <h2>Parking Allocation Management</h2>
 
-    <!-- Parking Area Tabs -->
-    <?php if (count($allAreas) > 1): ?>
-        <div class="parking-area-tabs" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-            <?php foreach ($allAreas as $idx => $area): ?>
-                <button type="button" class="parking-area-tab <?php echo $idx === 0 ? 'active' : ''; ?>"
-                    data-area-idx="<?php echo $idx; ?>" data-total="<?php echo (int) $area['totalCapacity']; ?>"
-                    data-students="<?php echo (int) $area['allocatedStudents']; ?>"
-                    data-occ-students="<?php echo (int) ($area['currentOccupiedStudents'] ?? 0); ?>"
-                    data-faculty="<?php echo (int) $area['allocatedFaculty']; ?>"
-                    data-occ-faculty="<?php echo (int) ($area['currentOccupiedFaculty'] ?? 0); ?>"
-                    data-staff="<?php echo (int) $area['allocatedStaff']; ?>"
-                    data-occ-staff="<?php echo (int) ($area['currentOccupiedStaff'] ?? 0); ?>"
-                    data-guests="<?php echo (int) $area['allocatedGuests']; ?>"
-                    data-occ-guests="<?php echo (int) ($area['currentOccupiedGuests'] ?? 0); ?>"
-                    style="padding:8px 18px;border:2px solid #3b82f6;border-radius:8px;cursor:pointer;font-weight:600;background:<?php echo $idx === 0 ? '#3b82f6' : '#fff'; ?>;color:<?php echo $idx === 0 ? '#fff' : '#3b82f6'; ?>;transition:all 0.2s;">
-                    <?php echo $idx === 0 ? 'Main Parking' : 'Side Parking Area ' . ($idx + 1); ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
-        <script>
-            document.querySelectorAll('.parking-area-tab').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    document.querySelectorAll('.parking-area-tab').forEach(function (b) {
-                        b.style.background = '#fff'; b.style.color = '#3b82f6';
-                    });
-                    this.style.background = '#3b82f6'; this.style.color = '#fff';
-                    var d = this.dataset;
-                    document.getElementById('area-total').textContent = d.total;
-                    document.getElementById('area-students').textContent = d.students;
-                    document.getElementById('area-occ-students').textContent = d.occStudents;
-                    document.getElementById('area-avail-students').textContent = Math.max(0, d.students - d.occStudents);
-                    document.getElementById('area-faculty').textContent = d.faculty;
-                    document.getElementById('area-occ-faculty').textContent = d.occFaculty;
-                    document.getElementById('area-avail-faculty').textContent = Math.max(0, d.faculty - d.occFaculty);
-                    document.getElementById('area-staff').textContent = d.staff;
-                    document.getElementById('area-occ-staff').textContent = d.occStaff;
-                    document.getElementById('area-avail-staff').textContent = Math.max(0, d.staff - d.occStaff);
-                    document.getElementById('area-guests').textContent = d.guests;
-                    document.getElementById('area-occ-guests').textContent = d.occGuests;
-                    document.getElementById('area-avail-guests').textContent = Math.max(0, d.guests - d.occGuests);
-                });
-            });
-        </script>
-    <?php endif; ?>
+
 
     <?php if (isset($success)): ?>
         <div class="alert success"><?php echo $success; ?></div>

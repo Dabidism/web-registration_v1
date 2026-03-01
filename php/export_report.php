@@ -8,6 +8,9 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once 'dbConnection.php';
 
+// Set timezone
+date_default_timezone_set('Asia/Manila');
+
 $type = $_GET['type'] ?? 'log';
 $period = $_GET['period'] ?? 'day';
 $customDate = $_GET['customDate'] ?? '';
