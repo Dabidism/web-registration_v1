@@ -123,6 +123,7 @@ include_once '../includes/header.php';
   <div class="modal-content small">
     <h3 class="text-danger">Confirm Owner Deletion</h3>
     <p>Are you sure you want to delete this owner? This action cannot be undone.</p>
+    <p style="color: #d97706; font-size: 0.9em; margin-bottom: 15px;"><strong>Warning:</strong> Deleting this owner will also permanently delete all vehicles registered under their name.</p>
     <input type="hidden" id="deleteOwnerID">
     <div class="form-group">
       <label>Admin Password:</label>

@@ -25,22 +25,53 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
+    // First get the owner ID for this vehicle
+    $ownerQuery = $conn->prepare("SELECT OwnerID FROM vehicle WHERE plateNum = ?");
+    $ownerQuery->bind_param("s", $plateNum);
+    $ownerQuery->execute();
+    $ownerResult = $ownerQuery->get_result();
+    
+    $ownerID = null;
+    if ($ownerRow = $ownerResult->fetch_assoc()) {
+        $ownerID = $ownerRow['OwnerID'];
+    }
+
+    $conn->begin_transaction();
+
     $stmt = $conn->prepare("DELETE FROM vehicle WHERE plateNum = ?");
     $stmt->bind_param("s", $plateNum);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows > 0) {
-            echo json_encode(['success' => true, 'message' => 'Vehicle deleted successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Vehicle not found']);
+    if ($stmt->affected_rows > 0) {
+        $message = 'Vehicle deleted successfully';
+        
+        // If we found an owner, see if they have any vehicles left
+        if ($ownerID !== null) {
+            $countQuery = $conn->prepare("SELECT COUNT(*) as count FROM vehicle WHERE OwnerID = ?");
+            $countQuery->bind_param("s", $ownerID);
+            $countQuery->execute();
+            $countResult = $countQuery->get_result();
+            $count = $countResult->fetch_assoc()['count'];
+            
+            // If the owner has 0 vehicles left, delete the owner
+            if ($count == 0) {
+                $delOwnerStmt = $conn->prepare("DELETE FROM vehicleowner WHERE OwnerID = ?");
+                $delOwnerStmt->bind_param("s", $ownerID);
+                $delOwnerStmt->execute();
+                $message .= ' and the associated vehicle owner was also removed.';
+            }
         }
+        $conn->commit();
+        echo json_encode(['success' => true, 'message' => $message]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to delete vehicle']);
+        $conn->rollback();
+        echo json_encode(['success' => false, 'message' => 'Vehicle not found']);
     }
 
     $db->closeConnection();
 
 } catch (Exception $e) {
+    if (isset($conn)) $conn->rollback();
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

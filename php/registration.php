@@ -89,13 +89,14 @@ require_once 'dbConnection.php';
         <div class="grid-3">
           <div>
             <label>College</label>
-            <select name="college" required>
+            <select name="college" id="collegeSelect" required>
               <option value="" disabled selected>Select College</option>
               <option value="CAS">(CAS) College of Arts and Sciences</option>
               <option value="CEA">(CEA) College of Engineering and Architecture</option>
               <option value="CCI">(CCI) College of Computing in Informatics</option>
               <option value="COE">(COE) College of Education</option>
               <option value="CIT">(CIT) College of Industrial Technology</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div id="courseField">
@@ -103,6 +104,7 @@ require_once 'dbConnection.php';
             <select name="course" id="courseSelect" required>
               <option value="" disabled selected>Select Course</option>
             </select>
+            <input type="text" name="otherCourse" id="otherCourseInput" placeholder="Enter your course" class="hidden" disabled />
           </div>
           <div id="academicYearField">
             <label>Academic Year</label>
@@ -136,6 +138,7 @@ require_once 'dbConnection.php';
               <option value="3rd">3rd Year</option>
               <option value="4th">4th Year</option>
               <option value="5th">5th Year</option>
+              <option value="6th">6th Year</option>
             </select>
           </div>
           <div id="sectionField">
@@ -404,6 +407,7 @@ require_once 'dbConnection.php';
         <div class="terms-buttons">
           <button id="termsDeclineBtn" type="button" onclick="closeTermsModal()" class="decline-btn">Decline</button>
           <button id="termsAgreeBtn" type="button" onclick="agreeToTerms()" disabled class="agree-btn">I Agree</button>
+          <button id="termsCloseBtn" type="button" onclick="closeTermsModal()" class="agree-btn active" style="display: none;">Close</button>
         </div>
       </div>
     </div>

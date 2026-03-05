@@ -201,7 +201,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $contactNum = $_POST['contactNum'];
         $schoolID = $_POST['schoolID']; // Capture School ID
         $college = $_POST['college'];
-        $course = $_POST['course'];
+        
+        if ($college === 'Other') {
+            $course = $_POST['otherCourse'] ?? '';
+        } else {
+            $course = $_POST['course'];
+        }
+        
         $academicYear = $_POST['academicYear'];
         $yearLevel = $_POST['yearLevel'] ?? '';
         $section = $_POST['section'] ?? '';

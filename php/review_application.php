@@ -177,7 +177,7 @@ include_once '../includes/header.php';
     <div class="review-container">
         <div class="review-section application-header">
             <div class="application-status">
-                <h3>Application #<?php echo htmlspecialchars($firstApp['applicationID']); ?></h3>
+                <h3>Application #<?php echo htmlspecialchars($firstApp['OwnerID']); ?></h3>
                 <span class="status-badge large <?php echo strtolower($applicant['registrationStatus']); ?>">
                     <?php if ($applicant['registrationStatus'] == 'pending'): ?>
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -252,6 +252,15 @@ include_once '../includes/header.php';
                     <span class="info-label">Academic Year:</span>
                     <span class="info-value"><?php echo htmlspecialchars($applicant['academicYear']); ?></span>
                 </div>
+                <?php if (!empty($applicant['additional_driver_name'])): ?>
+                    <div class="info-item" style="grid-column: 1 / -1; background-color: #f8fafc; padding: 10px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #3b82f6;">
+                        <span class="info-label" style="display: block; margin-bottom: 5px; color: #1e40af;">Additional Driver</span>
+                        <div style="display: flex; gap: 20px;">
+                            <div><strong style="color: #4b5563;">Name:</strong> <span class="info-value"><?php echo htmlspecialchars($applicant['additional_driver_name']); ?></span></div>
+                            <div><strong style="color: #4b5563;">Relationship:</strong> <span class="info-value"><?php echo htmlspecialchars($applicant['additional_driver_relationship']); ?></span></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <div class="document-section">

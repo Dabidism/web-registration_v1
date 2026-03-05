@@ -29,21 +29,21 @@ $rejectedCount = 0;
 $totalVehicles = 0;
 
 // Count pending applications
-$query = "SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'pending'";
+$query = "SELECT COUNT(DISTINCT OwnerID) as count FROM applications WHERE registrationStatus = 'pending'";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
   $pendingCount = $row['count'];
 }
 
 // Count approved applications
-$query = "SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'approved'";
+$query = "SELECT COUNT(DISTINCT OwnerID) as count FROM applications WHERE registrationStatus = 'approved'";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
   $approvedCount = $row['count'];
 }
 
 // Count rejected applications
-$query = "SELECT COUNT(*) as count FROM applications WHERE registrationStatus = 'rejected'";
+$query = "SELECT COUNT(DISTINCT OwnerID) as count FROM applications WHERE registrationStatus = 'rejected'";
 $result = $conn->query($query);
 if ($result && $row = $result->fetch_assoc()) {
   $rejectedCount = $row['count'];

@@ -24,11 +24,6 @@ if (session_status() == PHP_SESSION_NONE) {
       <script src="<?php echo $js; ?>"></script>
     <?php endforeach; ?>
   <?php endif; ?>
-  <?php if (isset($jsFiles) && is_array($jsFiles)): ?>
-    <?php foreach ($jsFiles as $js): ?>
-      <script src="../js/<?php echo $js; ?>" defer></script>
-    <?php endforeach; ?>
-  <?php endif; ?>
 </head>
 
 <body>

@@ -25,34 +25,36 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Check if owner has vehicles
-    $checkStmt = $conn->prepare("SELECT COUNT(*) as count FROM vehicle WHERE OwnerID = ?");
-    $checkStmt->bind_param("s", $ownerID);
-    $checkStmt->execute();
-    $result = $checkStmt->get_result();
-    $count = $result->fetch_assoc()['count'];
+    $conn->begin_transaction();
 
-    if ($count > 0) {
-        echo json_encode(['success' => false, 'message' => 'Cannot delete owner with registered vehicles']);
-        exit;
-    }
+    // Delete all vehicles associated with this owner
+    $delVehiclesStmt = $conn->prepare("DELETE FROM vehicle WHERE OwnerID = ?");
+    $delVehiclesStmt->bind_param("s", $ownerID);
+    $delVehiclesStmt->execute();
+    
+    $vehiclesDeleted = $delVehiclesStmt->affected_rows;
 
+    // Delete the owner
     $stmt = $conn->prepare("DELETE FROM vehicleowner WHERE OwnerID = ?");
     $stmt->bind_param("s", $ownerID);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
-        if ($stmt->affected_rows > 0) {
-            echo json_encode(['success' => true, 'message' => 'Owner deleted successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Owner not found']);
+    if ($stmt->affected_rows > 0) {
+        $conn->commit();
+        $msg = "Owner deleted successfully.";
+        if ($vehiclesDeleted > 0) {
+            $msg .= " $vehiclesDeleted associated vehicle(s) were also removed.";
         }
+        echo json_encode(['success' => true, 'message' => $msg]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to delete owner']);
+        $conn->rollback();
+        echo json_encode(['success' => false, 'message' => 'Owner not found']);
     }
 
     $db->closeConnection();
 
 } catch (Exception $e) {
+    if (isset($conn)) $conn->rollback();
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

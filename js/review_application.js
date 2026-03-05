@@ -22,11 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function showRejectModal() {
-    document.getElementById('rejectModal').style.display = 'flex';
+    document.getElementById('rejectModal').classList.remove('hidden');
 }
 
 function closeRejectModal() {
-    document.getElementById('rejectModal').style.display = 'none';
+    document.getElementById('rejectModal').classList.add('hidden');
     document.getElementById('rejectReasonText').value = '';
 }
 

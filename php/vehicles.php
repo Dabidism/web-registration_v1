@@ -141,6 +141,7 @@ include_once '../includes/header.php';
   <div class="modal-content small">
     <h3 class="text-danger">Confirm Vehicle Deletion</h3>
     <p>Are you sure you want to delete this vehicle? This action cannot be undone.</p>
+    <p style="color: #d97706; font-size: 0.9em; margin-bottom: 15px;"><strong>Warning:</strong> If this is the only vehicle registered to its owner, deleting this vehicle will completely delete the owner from the system as well.</p>
     <input type="hidden" id="deleteVehiclePlateNum">
     <div class="form-group">
       <label>Admin Password:</label>

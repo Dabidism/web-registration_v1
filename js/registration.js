@@ -64,11 +64,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (sectionField) sectionField.style.display = 'none';
                 if (employmentTypeField) employmentTypeField.classList.remove('hidden');
 
-                const courseSelect = document.querySelector('select[name="course"]');
+                const courseSelect = document.getElementById('courseSelect');
+                const otherCourseInput = document.getElementById('otherCourseInput');
                 const academicYearSelect = document.querySelector('select[name="academicYear"]');
                 const employmentTypeSelect = document.querySelector('select[name="employment_type"]');
 
                 if (courseSelect) courseSelect.removeAttribute('required');
+                if (otherCourseInput) otherCourseInput.removeAttribute('required');
                 if (academicYearSelect) academicYearSelect.removeAttribute('required');
                 if (employmentTypeSelect) employmentTypeSelect.setAttribute('required', 'required');
             } else {
@@ -78,11 +80,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (sectionField) sectionField.style.display = 'block';
                 if (employmentTypeField) employmentTypeField.classList.add('hidden');
 
-                const courseSelect = document.querySelector('select[name="course"]');
+                const courseSelect = document.getElementById('courseSelect');
+                const otherCourseInput = document.getElementById('otherCourseInput');
                 const academicYearSelect = document.querySelector('select[name="academicYear"]');
                 const employmentTypeSelect = document.querySelector('select[name="employment_type"]');
+                const collegeSelect = document.getElementById('collegeSelect');
 
-                if (courseSelect) courseSelect.setAttribute('required', 'required');
+                if (collegeSelect && collegeSelect.value === 'Other') {
+                    if (otherCourseInput) otherCourseInput.setAttribute('required', 'required');
+                    if (courseSelect) courseSelect.removeAttribute('required');
+                } else {
+                    if (courseSelect) courseSelect.setAttribute('required', 'required');
+                    if (otherCourseInput) otherCourseInput.removeAttribute('required');
+                }
                 if (academicYearSelect) academicYearSelect.setAttribute('required', 'required');
                 if (employmentTypeSelect) employmentTypeSelect.removeAttribute('required');
             }
@@ -105,19 +115,50 @@ document.addEventListener('DOMContentLoaded', function () {
     if (collegeSelect) {
         collegeSelect.addEventListener('change', function () {
             const courseSelect = document.getElementById('courseSelect');
+            const otherCourseInput = document.getElementById('otherCourseInput');
             const selectedCollege = this.value;
+            const selectedUserType = document.querySelector('input[name="userType"]:checked')?.value;
+            const isStudent = selectedUserType === 'student' || !selectedUserType;
 
-            // Clear existing options
-            courseSelect.innerHTML = '<option value="" disabled selected>Select Course</option>';
+            if (selectedCollege === 'Other') {
+                // Hide select, show text input
+                courseSelect.classList.add('hidden');
+                courseSelect.removeAttribute('required');
+                courseSelect.disabled = true;
 
-            // Populate courses based on selected college
-            if (selectedCollege && collegeCourses[selectedCollege]) {
-                collegeCourses[selectedCollege].forEach(course => {
-                    const option = document.createElement('option');
-                    option.value = course;
-                    option.textContent = course;
-                    courseSelect.appendChild(option);
-                });
+                otherCourseInput.classList.remove('hidden');
+                if (isStudent) {
+                    otherCourseInput.setAttribute('required', 'required');
+                } else {
+                    otherCourseInput.removeAttribute('required');
+                }
+                otherCourseInput.disabled = false;
+            } else {
+                // Show select, hide text input
+                courseSelect.classList.remove('hidden');
+                if (isStudent) {
+                    courseSelect.setAttribute('required', 'required');
+                } else {
+                    courseSelect.removeAttribute('required');
+                }
+                courseSelect.disabled = false;
+
+                otherCourseInput.classList.add('hidden');
+                otherCourseInput.removeAttribute('required');
+                otherCourseInput.disabled = true;
+
+                // Clear existing options
+                courseSelect.innerHTML = '<option value="" disabled selected>Select Course</option>';
+
+                // Populate courses based on selected college
+                if (selectedCollege && collegeCourses[selectedCollege]) {
+                    collegeCourses[selectedCollege].forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course;
+                        option.textContent = course;
+                        courseSelect.appendChild(option);
+                    });
+                }
             }
         });
     }
@@ -383,6 +424,36 @@ document.addEventListener('DOMContentLoaded', function () {
         termsLink.addEventListener('click', function (e) {
             e.preventDefault();
             const termsModal = document.getElementById('termsModal');
+            const mainCheckbox = document.getElementById('termsCheckbox');
+
+            if (mainCheckbox && mainCheckbox.value === "1") {
+                // User has already agreed
+                const checkboxLabel = document.querySelector('.terms-checkbox-label');
+                if (checkboxLabel) checkboxLabel.style.display = 'none';
+
+                const declineBtn = document.getElementById('termsDeclineBtn');
+                if (declineBtn) declineBtn.style.display = 'none';
+
+                const agreeBtn = document.getElementById('termsAgreeBtn');
+                if (agreeBtn) agreeBtn.style.display = 'none';
+
+                const closeBtn = document.getElementById('termsCloseBtn');
+                if (closeBtn) closeBtn.style.display = 'inline-block';
+            } else {
+                // User has not agreed yet
+                const checkboxLabel = document.querySelector('.terms-checkbox-label');
+                if (checkboxLabel) checkboxLabel.style.display = '';
+
+                const declineBtn = document.getElementById('termsDeclineBtn');
+                if (declineBtn) declineBtn.style.display = 'inline-block';
+
+                const agreeBtn = document.getElementById('termsAgreeBtn');
+                if (agreeBtn) agreeBtn.style.display = 'inline-block';
+
+                const closeBtn = document.getElementById('termsCloseBtn');
+                if (closeBtn) closeBtn.style.display = 'none';
+            }
+
             if (termsModal) termsModal.style.display = 'flex';
         });
     }
@@ -430,11 +501,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Since it's hidden, we don't 'check' it visually, but we update the UI
             }
 
-            if (termsStatusText) termsStatusText.style.display = 'none';
-            if (termsLink) termsLink.style.display = 'none'; // Optional: hide link after acceptance? Or keep it?
-            // User said "get rid of the check box outside the underlined words", implying the text might stay?
-            // "so that they need to read the terms to check the checkbox" -> checking happens in modal.
-            // Let's hide the "Please read" and show "Accepted"
+            if (termsStatusText) {
+                termsStatusText.textContent = 'I have agreed to the ';
+                termsStatusText.style.display = 'inline';
+            }
+            if (termsLink) termsLink.style.display = 'inline';
 
             if (termsAcceptedIcon) {
                 termsAcceptedIcon.classList.remove('hidden');
