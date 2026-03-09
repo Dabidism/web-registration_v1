@@ -53,16 +53,6 @@ include_once '../includes/header.php';
         <strong class="card-num"><?php echo $registeredResult->num_rows; ?></strong>
       </div>
     </div>
-    <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
-      <div class="card-flex">
-        <div>
-          <h3>Add RFID Tag</h3>
-          <p>Register New RFID</p>
-          <br />
-          <button class="btn-add-rfid">Add RFID</button>
-        </div>
-      </div>
-    <?php endif; ?>
   </div>
 
   <div class="grid">
@@ -201,19 +191,6 @@ include_once '../includes/header.php';
     <div class="modal-actions">
       <button class="btn-cancel">Cancel</button>
       <button class="btn-confirm">Issue Both</button>
-    </div>
-  </div>
-</div>
-
-<!-- Add RFID Modal -->
-<div id="addRfidModal" class="popup-overlay">
-  <div class="popup-content">
-    <h3>Add New RFID Tag</h3>
-    <p>Scan the RFID tag and enter the code below. The system will automatically assign an ID.</p>
-    <input type="text" id="newRfidCode" placeholder="Enter scanned RFID tag code (e.g., E0F8FEFE009806...)" />
-    <div class="popup-buttons">
-      <button class="btn-cancel">Cancel</button>
-      <button class="btn-add-confirm">Add RFID Tag</button>
     </div>
   </div>
 </div>
