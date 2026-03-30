@@ -1,6 +1,8 @@
 <?php
 // Include database connection
 require_once 'dbConnection.php';
+$db = new Database();
+$conn = $db->getConnection();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,12 +93,15 @@ require_once 'dbConnection.php';
             <label>College</label>
             <select name="college" id="collegeSelect" required>
               <option value="" disabled selected>Select College</option>
-              <option value="CAS">(CAS) College of Arts and Sciences</option>
-              <option value="CEA">(CEA) College of Engineering and Architecture</option>
-              <option value="CCI">(CCI) College of Computing in Informatics</option>
-              <option value="COE">(COE) College of Education</option>
-              <option value="CIT">(CIT) College of Industrial Technology</option>
-              <option value="Other">Other</option>
+              <?php
+              $colQuery = "SELECT code, name FROM colleges ORDER BY code";
+              $colResult = $conn->query($colQuery);
+              if ($colResult && $colResult->num_rows > 0) {
+                  while ($c = $colResult->fetch_assoc()) {
+                      echo '<option value="' . htmlspecialchars($c['code']) . '">(' . htmlspecialchars($c['code']) . ') ' . htmlspecialchars($c['name']) . '</option>';
+                  }
+              }
+              ?>
             </select>
           </div>
           <div id="courseField">
@@ -226,8 +231,12 @@ require_once 'dbConnection.php';
             </div>
             <div>
               <label>Plate Number</label>
-              <input type="text" name="plateNumber[]" placeholder="Enter plate number" required
+              <input type="text" name="plateNumber[]" class="plate-number-input" placeholder="Enter plate number" required
                 oninput="this.value = this.value.replace(/\s/g, '')" />
+              <label class="no-plate-label hidden" style="font-size: 0.85em; margin-top: 5px; display: inline-flex; align-items: center; gap: 5px;">
+                <input type="checkbox" class="no-plate-checkbox" />
+                No Plate Number
+              </label>
             </div>
             <div>
               <label>Number of Wheels</label>
@@ -423,5 +432,7 @@ require_once 'dbConnection.php';
     </div>
   </div>
 </body>
-
+<?php
+$db->closeConnection();
+?>
 </html>

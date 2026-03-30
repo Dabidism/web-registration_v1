@@ -21,7 +21,7 @@ $totalEntriesVis = $conn->query("SELECT COUNT(*) as count FROM visitor WHERE MON
 $totalEntries = $totalEntriesLog + $totalEntriesVis;
 
 $totalVisitors = $conn->query("SELECT COUNT(DISTINCT visitorID) as count FROM visitor WHERE MONTH(entryTime) = MONTH(CURRENT_DATE()) AND YEAR(entryTime) = YEAR(CURRENT_DATE())")->fetch_assoc()['count'] ?? 0;
-$totalVehicles = $conn->query("SELECT COUNT(*) as count FROM vehicle")->fetch_assoc()['count'] ?? 0;
+$totalVehicles = $conn->query("SELECT COUNT(*) as count FROM vehicle WHERE is_active = 1")->fetch_assoc()['count'] ?? 0;
 $totalApplications = $conn->query("SELECT COUNT(DISTINCT OwnerID) as count FROM applications WHERE registrationStatus = 'pending'")->fetch_assoc()['count'] ?? 0;
 
 // Get traffic data for different periods

@@ -22,6 +22,17 @@ try {
     
     $violations = [];
     while ($row = $result->fetch_assoc()) {
+        // Format violationType from snake_case to Title Case
+        if (isset($row['violationType'])) {
+            $row['violationType'] = ucwords(str_replace('_', ' ', $row['violationType']));
+        }
+        
+        // Format violationDate
+        if (!empty($row['violationDate'])) {
+            $row['formatted_date'] = date('M j, Y g:i A', strtotime($row['violationDate']));
+        } else {
+            $row['formatted_date'] = 'N/A';
+        }
         $violations[] = $row;
     }
     

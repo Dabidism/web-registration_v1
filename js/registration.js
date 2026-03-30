@@ -535,6 +535,23 @@ document.addEventListener('DOMContentLoaded', function () {
         const cubicCapacityInput = vehicleSection.querySelector('input[name="cubicCapacity[]"]');
         const otherTypeInput = vehicleSection.querySelector('input[name="otherVehicleType[]"]');
 
+        const noPlateLabel = vehicleSection.querySelector('.no-plate-label');
+        const noPlateCheckbox = vehicleSection.querySelector('.no-plate-checkbox');
+        const plateInput = vehicleSection.querySelector('.plate-number-input');
+
+        if (noPlateCheckbox && !noPlateCheckbox.dataset.initialized) {
+            noPlateCheckbox.dataset.initialized = 'true';
+            noPlateCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    plateInput.value = 'NO_PLATE';
+                    plateInput.classList.add('hidden');
+                } else {
+                    if (plateInput.value === 'NO_PLATE') plateInput.value = '';
+                    plateInput.classList.remove('hidden');
+                }
+            });
+        }
+
         if (selectElement.value === 'Car') {
             // Show Select, Hide Input
             numWheelsSelect.classList.remove('hidden');
@@ -556,6 +573,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 otherTypeInput.required = false;
                 otherTypeInput.value = '';
             }
+
+            if (noPlateLabel) {
+                noPlateLabel.classList.add('hidden');
+                if (noPlateCheckbox && noPlateCheckbox.checked) {
+                    noPlateCheckbox.checked = false;
+                    noPlateCheckbox.dispatchEvent(new Event('change'));
+                }
+            }
         } else if (selectElement.value === 'Motorcycle') {
             // Show Select, Hide Input
             numWheelsSelect.classList.remove('hidden');
@@ -575,6 +600,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 otherTypeInput.disabled = true;
                 otherTypeInput.required = false;
                 otherTypeInput.value = '';
+            }
+
+            if (noPlateLabel) {
+                noPlateLabel.classList.add('hidden');
+                if (noPlateCheckbox && noPlateCheckbox.checked) {
+                    noPlateCheckbox.checked = false;
+                    noPlateCheckbox.dispatchEvent(new Event('change'));
+                }
             }
         } else if (selectElement.value === 'Other') {
             // Hide Select, Show Input
@@ -599,6 +632,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 otherTypeInput.required = true;
                 otherTypeInput.focus();
             }
+
+            if (noPlateLabel) noPlateLabel.classList.remove('hidden');
         }
     }
 

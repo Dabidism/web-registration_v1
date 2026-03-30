@@ -27,7 +27,7 @@ $stats = [
 ];
 
 // Get total vehicles
-$result = $conn->query("SELECT COUNT(*) as count FROM vehicle");
+$result = $conn->query("SELECT COUNT(*) as count FROM vehicle WHERE is_active = 1");
 if ($result) {
   $stats['total_vehicles'] = $result->fetch_assoc()['count'];
 }
@@ -88,13 +88,13 @@ $stats['total_capacity'] = $parkingData['totalCapacity'];
 $stats['occupancy_by_role'] = $occupancyByRole;
 
 // Get pending vehicles (vehicles without RFID tags)
-$result = $conn->query("SELECT COUNT(*) as count FROM vehicle WHERE stickerID IS NULL");
+$result = $conn->query("SELECT COUNT(*) as count FROM vehicle WHERE stickerID IS NULL AND is_active = 1");
 if ($result) {
   $stats['pending_vehicles'] = $result->fetch_assoc()['count'];
 }
 
 // Get total users
-$result = $conn->query("SELECT COUNT(*) as count FROM vehicleowner");
+$result = $conn->query("SELECT COUNT(*) as count FROM vehicleowner WHERE is_active = 1");
 if ($result) {
   $stats['total_users'] = $result->fetch_assoc()['count'];
 }
@@ -110,7 +110,7 @@ if ($result) {
 
 // Get vehicle types data from database
 $vehicleTypes = [];
-$result = $conn->query("SELECT vehicleType, COUNT(*) as count FROM vehicle WHERE vehicleType IS NOT NULL AND vehicleType != '' GROUP BY vehicleType");
+$result = $conn->query("SELECT vehicleType, COUNT(*) as count FROM vehicle WHERE vehicleType IS NOT NULL AND vehicleType != '' AND is_active = 1 GROUP BY vehicleType");
 if ($result) {
   while ($row = $result->fetch_assoc()) {
     $vehicleTypes[] = $row;

@@ -101,8 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $uniqueCode = 'A' . str_pad($maxNum + 1, 3, '0', STR_PAD_LEFT);
 
                 $approvalTime = date('Y-m-d H:i:s');
-                $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, college, course, year, section, academicYear, registrationStatus, approvalTimestamp, drivers_license) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?)");
-                $stmt->bind_param("ssssssssssssss", $uniqueCode, $applicant['fName'], $applicant['lName'], $applicant['mName'], $applicant['role'], $applicant['email'], $applicant['contact_num'], $applicant['college'], $applicant['course'], $applicant['year'], $applicant['section'], $applicant['academicYear'], $approvalTime, $applicant['drivers_license']);
+                $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, schoolID, college, course, year, section, academicYear, employment_type, registrationStatus, drivers_license, additional_driver_name, additional_driver_relationship, approvalTimestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?, ?)");
+                $stmt->bind_param("ssssssssssssssssss", $uniqueCode, $applicant['fName'], $applicant['lName'], $applicant['mName'], $applicant['role'], $applicant['email'], $applicant['contact_num'], $applicant['schoolID'], $applicant['college'], $applicant['course'], $applicant['year'], $applicant['section'], $applicant['academicYear'], $applicant['employment_type'], $applicant['drivers_license'], $applicant['additional_driver_name'], $applicant['additional_driver_relationship'], $approvalTime);
                 $stmt->execute();
 
                 foreach ($vehicles as $vehicle) {
@@ -219,6 +219,10 @@ include_once '../includes/header.php';
                 <div class="info-item">
                     <span class="info-label">Role:</span>
                     <span class="info-value"><?php echo htmlspecialchars(ucfirst($applicant['role'])); ?></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">School ID:</span>
+                    <span class="info-value"><?php echo htmlspecialchars($applicant['schoolID']); ?></span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Email:</span>

@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fName = $_POST['fName'];
     $lName = $_POST['lName'];
     $mName = $_POST['mName'];
+    $schoolID = $_POST['schoolID'];
     $email = $_POST['email'];
     $contact_num = trim($_POST['contact_num'] ?? '');
     $college = $_POST['college'];
@@ -28,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
     
-    $query = "UPDATE vehicleowner SET fName = ?, lName = ?, mName = ?, email = ?, contact_num = ?, college = ?, course = ?, employment_type = ? WHERE OwnerID = ?";
+    $query = "UPDATE vehicleowner SET fName = ?, lName = ?, mName = ?, schoolID = ?, email = ?, contact_num = ?, college = ?, course = ?, employment_type = ? WHERE OwnerID = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("sssssssss", $fName, $lName, $mName, $email, $contact_num, $college, $course, $employment_type, $ownerID);
+    $stmt->bind_param("ssssssssss", $fName, $lName, $mName, $schoolID, $email, $contact_num, $college, $course, $employment_type, $ownerID);
     
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'message' => 'Owner updated successfully']);

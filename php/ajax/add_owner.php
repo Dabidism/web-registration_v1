@@ -21,6 +21,7 @@ function isValidContact($contact) {
 $fName = trim($_POST['fName'] ?? '');
 $lName = trim($_POST['lName'] ?? '');
 $mName = trim($_POST['mName'] ?? '');
+$schoolID = trim($_POST['schoolID'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $contact_num = trim($_POST['contact_num'] ?? '');
 $role = trim($_POST['role'] ?? '');
@@ -28,8 +29,8 @@ $college = trim($_POST['college'] ?? '');
 $course = trim($_POST['course'] ?? '');
 $employment_type = !empty($_POST['employment_type']) ? trim($_POST['employment_type']) : null;
 
-if (empty($fName) || empty($lName) || empty($email) || empty($contact_num) || empty($role) || empty($college)) {
-    echo json_encode(['success' => false, 'message' => 'Required fields: First Name, Last Name, Email, Contact Number, Role, College']);
+if (empty($fName) || empty($lName) || empty($email) || empty($contact_num) || empty($role) || empty($college) || empty($schoolID)) {
+    echo json_encode(['success' => false, 'message' => 'Required fields: First Name, Last Name, School ID, Email, Contact Number, Role, College']);
     exit;
 }
 
@@ -46,8 +47,8 @@ try {
     $approvalTime = date('Y-m-d H:i:s');
     $academicYear = '2025-2026';
     $registrationStatus = 'approved';
-    $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, role, email, contact_num, college, course, academicYear, registrationStatus, approvalTimestamp, employment_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssssssss", $ownerID, $fName, $lName, $mName, $role, $email, $contact_num, $college, $course, $academicYear, $registrationStatus, $approvalTime, $employment_type);
+    $stmt = $conn->prepare("INSERT INTO vehicleowner (OwnerID, fName, lName, mName, schoolID, role, email, contact_num, college, course, academicYear, registrationStatus, approvalTimestamp, employment_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssssssssssss", $ownerID, $fName, $lName, $mName, $schoolID, $role, $email, $contact_num, $college, $course, $academicYear, $registrationStatus, $approvalTime, $employment_type);
 
     if ($stmt->execute()) {
         echo json_encode(['success' => true, 'message' => 'Owner added successfully', 'ownerID' => $ownerID]);

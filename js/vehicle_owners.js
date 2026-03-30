@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('viewOwnerContent').innerHTML = `
                             <p><strong>Owner ID:</strong> ${owner.OwnerID}</p>
                             <p><strong>Name:</strong> ${owner.fName} ${owner.lName} ${owner.mName || ''}</p>
+                            <p><strong>School ID:</strong> ${owner.schoolID || 'N/A'}</p>
                             <p><strong>Role:</strong> ${owner.role}</p>
                             <p><strong>Email:</strong> ${owner.email}</p>
                             <p><strong>Contact:</strong> ${owner.contact_num}</p>
@@ -121,6 +122,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         document.getElementById('editFName').value = owner.fName;
                         document.getElementById('editLName').value = owner.lName;
                         document.getElementById('editMName').value = owner.mName || '';
+                        document.getElementById('editSchoolID').value = owner.schoolID || '';
                         document.getElementById('editEmail').value = owner.email;
                         document.getElementById('editContact').value = owner.contact_num;
                         document.getElementById('editCollege').value = owner.college;
@@ -273,19 +275,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Delete owner functionality (Opening Modal)
-    document.querySelectorAll('.btn-delete').forEach(btn => {
+    // Toggle owner status functionality (Opening Modal)
+    document.querySelectorAll('.btn-toggle-status:not(#confirmToggleStatusBtn)').forEach(btn => {
         btn.addEventListener('click', function () {
             const ownerID = this.getAttribute('data-id');
-            document.getElementById('deleteOwnerID').value = ownerID;
-            document.getElementById('deleteOwnerModal').style.display = 'flex';
+            const currentStatus = this.getAttribute('data-status');
+            document.getElementById('toggleStatusOwnerID').value = ownerID;
+            document.getElementById('toggleStatusCurrent').value = currentStatus;
+            const toggleModal = document.getElementById('toggleStatusOwnerModal');
+            if (toggleModal) toggleModal.style.display = 'flex';
         });
     });
 
-    // Confirm Delete Action
-    const confirmDeleteBtn = document.getElementById('confirmDeleteOwnerBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', performDeleteOwner);
+    // Confirm Toggle Action
+    const confirmToggleBtn = document.getElementById('confirmToggleStatusBtn');
+    if (confirmToggleBtn) {
+        confirmToggleBtn.addEventListener('click', performToggleStatusOwner);
     }
 });
 
@@ -311,10 +316,11 @@ function verifyAdminPassword(password) {
         });
 }
 
-// Function to attach delete logic (called from DOMContentLoaded or accessible global)
-function performDeleteOwner() {
-    const adminPassword = document.getElementById('deleteOwnerAdminPassword').value;
-    const ownerID = document.getElementById('deleteOwnerID').value;
+// Function to attach toggle logic 
+function performToggleStatusOwner() {
+    const adminPassword = document.getElementById('toggleStatusAdminPassword').value;
+    const ownerID = document.getElementById('toggleStatusOwnerID').value;
+    const currentStatus = document.getElementById('toggleStatusCurrent').value;
 
     if (!adminPassword) {
         alert('Please enter your admin password');
@@ -325,17 +331,18 @@ function performDeleteOwner() {
         .then(success => {
             if (success) {
                 const formData = new FormData();
-                formData.append('ownerID', ownerID);
+                formData.append('id', ownerID);
+                formData.append('current_status', currentStatus);
 
-                fetch('ajax/delete_owner.php', {
+                fetch('ajax/toggle_owner_status.php', {
                     method: 'POST',
                     body: formData
                 })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Owner deleted successfully!');
-                            document.getElementById('deleteOwnerModal').style.display = 'none';
+                            alert('Owner status updated successfully!');
+                            document.getElementById('toggleStatusOwnerModal').style.display = 'none';
                             location.reload();
                         } else {
                             alert('Error: ' + data.message);
@@ -343,7 +350,7 @@ function performDeleteOwner() {
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        alert('Failed to delete owner');
+                        alert('Failed to update owner status');
                     });
             }
         });

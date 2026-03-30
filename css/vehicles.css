@@ -176,7 +176,8 @@
 
 .btn-view,
 .btn-edit,
-.btn-delete {
+.btn-delete,
+.btn-toggle-status {
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 13px;
@@ -203,6 +204,26 @@
   border: 1px solid #fecaca;
 }
 
+.btn-toggle-status {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-activate {
+  color: #f3f4f6;
+  background-color: #16a34a;
+  /* green */
+  border: 1px solid #e5e7eb;
+}
+
+.btn-deactivate {
+  color: #f3f4f6;
+  background-color: #dc2626;
+  /* red */
+  border: 1px solid #e5e7eb;
+}
+
 .btn-view:hover {
   background-color: #e5e7eb;
 }
@@ -214,6 +235,20 @@
 .btn-delete:hover {
   background-color: #fee2e2;
   border-color: #f87171;
+}
+
+.btn-toggle-status:hover {
+  background-color: #e5e7eb;
+}
+
+.btn-activate:hover {
+  background-color: #e5e7eb;
+  color: #15803d;
+}
+
+.btn-deactivate:hover {
+  background-color: #e5e7eb;
+  color: #b91c1c;
 }
 
 .no-data {

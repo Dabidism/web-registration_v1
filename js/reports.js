@@ -162,7 +162,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            title: { display: true, text: 'Number of Entries' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Time Period' }
+                        }
+                    }
                 }
             });
         }

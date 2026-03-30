@@ -93,12 +93,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Delete buttons
-    document.querySelectorAll('.btn-delete').forEach(btn => {
+    // Toggle Status buttons
+    document.querySelectorAll('.btn-toggle-status:not(#confirmToggleStatusVehicleBtn)').forEach(btn => {
         btn.addEventListener('click', function () {
             const plateNum = this.getAttribute('data-plate');
-            document.getElementById('deleteVehiclePlateNum').value = plateNum;
-            document.getElementById('deleteVehicleModal').style.display = 'block';
+            const currentStatus = this.getAttribute('data-status');
+            document.getElementById('toggleStatusVehiclePlateNum').value = plateNum;
+            document.getElementById('toggleStatusVehicleCurrent').value = currentStatus;
+            document.getElementById('toggleStatusVehicleModal').style.display = 'block';
         });
     });
 
@@ -267,12 +269,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Delete Vehicle Action
-    const confirmDeleteBtn = document.getElementById('confirmDeleteVehicleBtn');
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', function () {
-            const adminPassword = document.getElementById('deleteVehicleAdminPassword').value;
-            const plateNum = document.getElementById('deleteVehiclePlateNum').value;
+    // Toggle Vehicle Action
+    const confirmToggleBtn = document.getElementById('confirmToggleStatusVehicleBtn');
+    if (confirmToggleBtn) {
+        confirmToggleBtn.addEventListener('click', function () {
+            const adminPassword = document.getElementById('toggleStatusVehicleAdminPassword').value;
+            const plateNum = document.getElementById('toggleStatusVehiclePlateNum').value;
+            const currentStatus = document.getElementById('toggleStatusVehicleCurrent').value;
 
             if (!adminPassword) {
                 alert('Please enter your admin password');
@@ -284,17 +287,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (success) {
                         const formData = new FormData();
                         formData.append('plateNum', plateNum);
+                        formData.append('current_status', currentStatus);
 
-                        fetch('ajax/delete_vehicle.php', {
+                        fetch('ajax/toggle_vehicle_status.php', {
                             method: 'POST',
                             body: formData
                         })
                             .then(response => response.json())
                             .then(data => {
                                 if (data.success) {
-                                    alert('Vehicle deleted successfully!');
-                                    document.getElementById('deleteVehicleModal').style.display = 'none';
-                                    document.getElementById('deleteVehicleAdminPassword').value = '';
+                                    alert('Vehicle status updated successfully!');
+                                    document.getElementById('toggleStatusVehicleModal').style.display = 'none';
+                                    document.getElementById('toggleStatusVehicleAdminPassword').value = '';
                                     // Reload page to refresh vehicle list
                                     window.location.reload();
                                 } else {
@@ -303,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             })
                             .catch(error => {
                                 console.error('Error:', error);
-                                alert('Failed to delete vehicle');
+                                alert('Failed to update vehicle status');
                             });
                     }
                 });
@@ -479,11 +483,11 @@ function viewViolations(plateNum) {
                 let violationsHtml = '<h4>Violations for ' + plateNum + '</h4>';
                 if (data.violations.length > 0) {
                     data.violations.forEach(violation => {
+                        const dateDisplay = violation.formatted_date || violation.violationDate || 'N/A';
                         violationsHtml += `
                   <div class="violation-item">
                     <p><strong>Type:</strong> ${violation.violationType}</p>
-                    <p><strong>Description:</strong> ${violation.description}</p>
-                    <p><strong>Date:</strong> ${violation.violationDate}</p>
+                    <p><strong>Date:</strong> ${dateDisplay}</p>
                     <button class="btn-resolve" data-id="${violation.violationID}">Resolve</button>
                   </div>`;
                     });

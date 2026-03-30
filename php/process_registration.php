@@ -106,10 +106,16 @@ if (isset($_POST['action']) && isset($_POST['id'])) {
 
                 // Process all vehicles for this owner
                 foreach ($applications as $app) {
+                    $plateNum = $app['plateNum'];
+                    if (strpos($plateNum, 'NO_PLATE_') === 0) {
+                        // Assign a temporary car pass ID as the plate number since they don't have one
+                        $plateNum = 'V-PASS-' . $ownerID . '-' . rand(100, 999);
+                    }
+
                     $stmt = $conn->prepare("INSERT INTO vehicle (plateNum, OwnerID, vehicleType, model, manufacturer, color, cubicCapacity, numOfWheels, fuelType, offical_receipt, cert_of_registration) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->bind_param(
                         "sssssssisss",
-                        $app['plateNum'],
+                        $plateNum,
                         $ownerID,
                         $app['vehicleType'],
                         $app['model'],
@@ -218,6 +224,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Start transaction for registration
         $conn->begin_transaction();
 
+        // Check if the applicant already exists based on first name and last name (case-insensitive usually handled by MySQL collation)
+        $nameCheckStmt = $conn->prepare("SELECT COUNT(*) as count FROM vehicleowner WHERE fName = ? AND lName = ? UNION ALL SELECT COUNT(*) as count FROM applications WHERE fName = ? AND lName = ?");
+        $nameCheckStmt->bind_param("ssss", $firstName, $lastName, $firstName, $lastName);
+        $nameCheckStmt->execute();
+        $nameResult = $nameCheckStmt->get_result();
+        $nameCount = 0;
+        while ($row = $nameResult->fetch_assoc()) {
+            $nameCount += $row['count'];
+        }
+
+        if ($nameCount > 0) {
+            $response['message'] = "An application using the name '" . $firstName . " " . $lastName . "' has already been registered.";
+            $conn->rollback();
+            echo json_encode($response);
+            $db->closeConnection();
+            exit;
+        }
+
         // Generate OwnerID in format A001, A002, etc. with lock
         $result = $conn->query("SELECT MAX(CAST(SUBSTRING(OwnerID, 2) AS UNSIGNED)) as max_num FROM applications WHERE OwnerID LIKE 'A%' FOR UPDATE");
         $maxNum = $result ? ($result->fetch_assoc()['max_num'] ?? 0) : 0;
@@ -270,6 +294,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $response['message'] = "Cubic capacity is required for motorcycles (vehicle " . ($i + 1) . ")";
                     $success = false;
                     break;
+                }
+
+                if ($plateNumber === 'NO_PLATE') {
+                    $plateNumber = 'NO_PLATE_' . time() . '_' . rand(1000, 9999);
                 }
 
                 // Check if plate number already exists in vehicle table or applications table

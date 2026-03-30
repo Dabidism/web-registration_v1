@@ -79,6 +79,7 @@ include_once '../includes/header.php';
             <th>Model</th>
             <th>Manufacturer</th>
             <th>Violations</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -115,11 +116,20 @@ include_once '../includes/header.php';
                   <?php endif; ?>
                 </td>
                 <td>
+                  <?php if ($row['is_active']): ?>
+                    <span style="color: green; font-weight: bold;">Active</span>
+                  <?php else: ?>
+                    <span style="color: gray; font-weight: bold;">Inactive</span>
+                  <?php endif; ?>
+                </td>
+                <td>
                   <div class="action-buttons">
                     <button class="btn-view" data-plate="<?php echo $row['plateNum']; ?>">View</button>
                     <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
                       <button class="btn-edit" data-plate="<?php echo $row['plateNum']; ?>">Edit</button>
-                      <button class="btn-delete" data-plate="<?php echo $row['plateNum']; ?>">Delete</button>
+                      <button class="btn-toggle-status <?php echo $row['is_active'] ? 'btn-deactivate' : 'btn-activate'; ?>" data-plate="<?php echo $row['plateNum']; ?>" data-status="<?php echo $row['is_active']; ?>">
+                        <?php echo $row['is_active'] ? 'Deactivate' : 'Activate'; ?>
+                      </button>
                     <?php endif; ?>
                   </div>
                 </td>
@@ -136,21 +146,22 @@ include_once '../includes/header.php';
   </div>
 </main>
 
-<!-- Delete Vehicle Modal -->
-<div id="deleteVehicleModal" class="modal">
+<!-- Toggle Status Vehicle Modal -->
+<div id="toggleStatusVehicleModal" class="modal">
   <div class="modal-content small">
-    <h3 class="text-danger">Confirm Vehicle Deletion</h3>
-    <p>Are you sure you want to delete this vehicle? This action cannot be undone.</p>
-    <p style="color: #d97706; font-size: 0.9em; margin-bottom: 15px;"><strong>Warning:</strong> If this is the only vehicle registered to its owner, deleting this vehicle will completely delete the owner from the system as well.</p>
-    <input type="hidden" id="deleteVehiclePlateNum">
+    <h3 class="text-warning">Confirm Status Change</h3>
+    <p>Are you sure you want to change the active status of this vehicle?</p>
+    <p style="color: #d97706; font-size: 0.9em; margin-bottom: 15px;"><strong>Note:</strong> Inactive vehicles will not be counted in active vehicle reports.</p>
+    <input type="hidden" id="toggleStatusVehiclePlateNum">
+    <input type="hidden" id="toggleStatusVehicleCurrent">
     <div class="form-group">
       <label>Admin Password:</label>
-      <input type="password" id="deleteVehicleAdminPassword" required
+      <input type="password" id="toggleStatusVehicleAdminPassword" required
         placeholder="Enter your admin password to confirm">
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn-cancel">Cancel</button>
-      <button type="button" id="confirmDeleteVehicleBtn" class="btn-danger">Delete Vehicle</button>
+      <button type="button" class="btn-cancel" id="cancelVehicleToggleBtn">Cancel</button>
+      <button type="button" id="confirmToggleStatusVehicleBtn" class="btn-toggle-status">Confirm</button>
     </div>
   </div>
 </div>

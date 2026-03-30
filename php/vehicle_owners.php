@@ -69,6 +69,7 @@ include_once '../includes/header.php';
             <th>Name</th>
             <th>Role</th>
             <th>Email</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -86,13 +87,21 @@ include_once '../includes/header.php';
                     <?php echo htmlspecialchars(ucfirst($row['role'])); ?>
                   </span>
                 </td>
-                <td><?php echo htmlspecialchars($row['email']); ?></td>
+                <td>
+                  <?php if ($row['is_active']): ?>
+                    <span style="color: green; font-weight: bold;">Active</span>
+                  <?php else: ?>
+                    <span style="color: gray; font-weight: bold;">Inactive</span>
+                  <?php endif; ?>
+                </td>
                 <td>
                   <div class="action-buttons">
                     <button class="btn-view" data-id="<?php echo $row['OwnerID']; ?>">View</button>
                     <?php if ($_SESSION['role'] === 'SSEDMMO Admin'): ?>
                       <button class="btn-edit" data-id="<?php echo $row['OwnerID']; ?>">Edit</button>
-                      <button class="btn-delete" data-id="<?php echo $row['OwnerID']; ?>">Delete</button>
+                      <button class="btn-toggle-status <?php echo $row['is_active'] ? 'btn-deactivate' : 'btn-activate'; ?>" data-id="<?php echo $row['OwnerID']; ?>" data-status="<?php echo $row['is_active']; ?>">
+                        <?php echo $row['is_active'] ? 'Deactivate' : 'Activate'; ?>
+                      </button>
                     <?php endif; ?>
                   </div>
                 </td>
@@ -118,20 +127,21 @@ include_once '../includes/header.php';
   </div>
 </div>
 
-<!-- Delete Owner Modal -->
-<div id="deleteOwnerModal" class="modal">
+<!-- Toggle Status Owner Modal -->
+<div id="toggleStatusOwnerModal" class="modal">
   <div class="modal-content small">
-    <h3 class="text-danger">Confirm Owner Deletion</h3>
-    <p>Are you sure you want to delete this owner? This action cannot be undone.</p>
-    <p style="color: #d97706; font-size: 0.9em; margin-bottom: 15px;"><strong>Warning:</strong> Deleting this owner will also permanently delete all vehicles registered under their name.</p>
-    <input type="hidden" id="deleteOwnerID">
+    <h3 class="text-warning">Confirm Status Change</h3>
+    <p>Are you sure you want to change the active status of this owner?</p>
+    <p style="color: #d97706; font-size: 0.9em; margin-bottom: 15px;"><strong>Note:</strong> Inactive owners will not be counted in active vehicle reports.</p>
+    <input type="hidden" id="toggleStatusOwnerID">
+    <input type="hidden" id="toggleStatusCurrent">
     <div class="form-group">
       <label>Admin Password:</label>
-      <input type="password" id="deleteOwnerAdminPassword" required placeholder="Enter your admin password to confirm">
+      <input type="password" id="toggleStatusAdminPassword" required placeholder="Enter your admin password to confirm">
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn-cancel">Cancel</button>
-      <button type="button" id="confirmDeleteOwnerBtn" class="btn-danger">Delete Owner</button>
+      <button type="button" class="btn-cancel" id="cancelToggleBtn">Cancel</button>
+      <button type="button" id="confirmToggleStatusBtn" class="btn-toggle-status">Confirm</button>
     </div>
   </div>
 </div>
@@ -157,6 +167,11 @@ include_once '../includes/header.php';
       <div class="form-group">
         <label>Middle Name:</label>
         <input type="text" id="editMName" name="mName">
+      </div>
+
+      <div class="form-group">
+        <label>School ID:</label>
+        <input type="text" id="editSchoolID" name="schoolID" required>
       </div>
 
       <div class="form-group">
@@ -222,6 +237,10 @@ include_once '../includes/header.php';
       <div class="form-group">
         <label>Middle Name:</label>
         <input type="text" id="addMName" name="mName">
+      </div>
+      <div class="form-group">
+        <label>School ID:</label>
+        <input type="text" id="addSchoolID" name="schoolID" required>
       </div>
       <div class="form-group">
         <label>Email:</label>
